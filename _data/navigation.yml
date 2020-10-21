@@ -1,0 +1,7 @@
+header:
+  - title:  Home
+    url:    index
+  - title:  Archive
+    url:    archive
+  - title:  About
+    url:    about
