@@ -16,8 +16,8 @@ theme: jekyll-text-theme # Gem-based Jekyll Themes
 #    `--'   `----''--'   '--' `--'
 ## => Site Settings
 ##############################
-text_skin: ocean # "default" (default), "dark", "forest", "ocean", "chocolate", "orange"
-highlight_theme: tomorrow-night-eighties # "default" (default), "tomorrow", "tomorrow-night", "tomorrow-night-eighties", "tomorrow-night-blue", "tomorrow-night-bright"
+text_skin: go # "default" (default), "dark", "forest", "ocean", "chocolate", "orange"
+highlight_theme: tomorrow-night-bright # "default" (default), "tomorrow", "tomorrow-night", "tomorrow-night-eighties", "tomorrow-night-blue", "tomorrow-night-bright"
 url     : https://www.z7workbench.xin/ # the base hostname & protocol for your site e.g. https://www.someone.com
 baseurl : # does not include hostname
 title   : ZeroGo's Workbench🔨 / 小Z的工作台
@@ -60,8 +60,8 @@ repository_tree: main
 ## => Paths
 ##############################
 paths:
-  root    : / # title link url, "/" (default)
-  home    : / # home layout url, "/" (default)
+  root    : /landing # title link url, "/" (default)
+  home    : /index # home layout url, "/" (default)
   archive : /archive # "/archive.html" (default)
   rss     : # "/feed.xml" (default)
 

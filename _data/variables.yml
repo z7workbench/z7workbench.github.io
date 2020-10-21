@@ -1,6 +1,6 @@
 default:
-  text_skin: default
-  highlight_theme: default
+  text_skin: go
+  highlight_theme: tomorrow-night-eighties
   lang: cn
   paths:
     root: /
