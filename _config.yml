@@ -117,15 +117,13 @@ sharing:
 ##############################
 comments:
   provider: gitalk # false (default), "disqus", "gitalk", "valine", "custom"
-  ## Gitalk
-  # please refer to https://github.com/gitalk/gitalk for more info.
   gitalk:
     clientID    : ${{ secrets.GITALK_ID }} # GitHub Application Client ID
     clientSecret: ${{ secrets.GITALK_SECRET }} # GitHub Application Client Secret
-    repository  : "z7workbench.github.io" # GitHub repo
-    owner       : "z7workbench" # GitHub repo owner
+    repository  : z7workbench.github.io # GitHub repo
+    owner       : z7workbench # GitHub repo owner
     admin: # GitHub repo owner and collaborators, only these guys can initialize GitHub issues, IT IS A LIST.
-      - "z7workbench"
+      - z7workbench
 
 ## => Pageview
 ##############################
