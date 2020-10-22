@@ -125,8 +125,8 @@ comments:
   ## Gitalk
   # please refer to https://github.com/gitalk/gitalk for more info.
   gitalk:
-    clientID    : 810d78817d84bff0284b # GitHub Application Client ID
-    clientSecret: e524ba2d613ffe92524681d401240211ab09ea47 # GitHub Application Client Secret
+    clientID    : ${{ secrets.GITALK_ID }} # GitHub Application Client ID
+    clientSecret: ${{ secrets.GITALK_SECRET }} # GitHub Application Client Secret
     repository  : z7workbench.github.io # GitHub repo
     owner       : z7workbench # GitHub repo owner
     admin: [z7workbench] # GitHub repo owner and collaborators, only these guys can initialize GitHub issues, IT IS A LIST.
