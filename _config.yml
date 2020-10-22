@@ -129,8 +129,8 @@ comments:
     clientSecret: ${{ secrets.GITALK_SECRET }} # GitHub Application Client Secret
     repository  : z7workbench.github.io # GitHub repo
     owner       : z7workbench # GitHub repo owner
-    admin: [z7workbench] # GitHub repo owner and collaborators, only these guys can initialize GitHub issues, IT IS A LIST.
-      # - your GitHub Id
+    admin: # GitHub repo owner and collaborators, only these guys can initialize GitHub issues, IT IS A LIST.
+      - z7workbench
 
   ## Valine
   # please refer to https://valine.js.org/en/ for more info.
