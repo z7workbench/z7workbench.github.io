@@ -1,13 +1,3 @@
-header:
-  - title:  Home
-    url:    /index
-  - title:  Archive
-    url:    /archive
-  - title:  Android Notes
-    url:    /android/home
-  - title:  About
-    url:    /about
-
 android-cn:
   - title:    开始
     children:
