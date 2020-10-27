@@ -2,6 +2,10 @@
 layout:  article
 title:   欢迎来到ZeroGo的Android学习笔记
 permalink: /android/home
+article_header:
+  type:     cover
+  image:
+    src:    assets/articles_imgs/2020-10-26-android-notes/android_banner.webp
 sidebar:
   nav: android-cn
 ---
