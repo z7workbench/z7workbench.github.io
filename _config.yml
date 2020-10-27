@@ -118,8 +118,8 @@ sharing:
 comments:
   provider: gitalk # false (default), "disqus", "gitalk", "valine", "custom"
   gitalk:
-    clientID    : ${{ secrets.GITALK_ID }} # GitHub Application Client ID
-    clientSecret: ${{ secrets.GITALK_SECRET }} # GitHub Application Client Secret
+    clientID    : 620e8d7bf0414c251bdc # GitHub Application Client ID
+    clientSecret: 86aaa64adbb28e9a5974fa7c6ce331a6aeb824cd # GitHub Application Client Secret
     repository  : z7workbench.github.io # GitHub repo
     owner       : z7workbench # GitHub repo owner
     admin: # GitHub repo owner and collaborators, only these guys can initialize GitHub issues, IT IS A LIST.
