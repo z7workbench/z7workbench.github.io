@@ -117,4 +117,15 @@ sudo apt install exfat-fuse exfat-utils
 {% endhighlight %}
 这样你可以访问并创建exFAT文件系统了，也就是说你可以使用``mkfs.exfat``进行格式化了。  
 这里**不建议**把大硬盘格式化成exFAT，因为会导致许多文件碎片。  
+# Linux常用指令
+|指令|类型|示例|解释|
+|:---:|:---:|---|---|
+|ls|文件夹操作|ls [dir]|查看对应目录中的内容，不写[dir]字段默认为当前目录|
+|ll|文件夹操作|ll [dir]|等同于ls -l|
+|la|文件夹操作|la [dir]|等同于ls -a|
+|mv|文件操作|mv (-T) [file or folder]|移动或重命名文件或文件夹|
+|cp|文件操作|cp (-T -r) [file or folder]|复制文件或文件夹，文件夹需要加-r|
+|rm|文件操作|rm (-rf) [fire or folder]|删除文件或文件夹，文件夹需要加-r，-f为强制删除|
+|du|文件夹操作|du -h [dir] --max_depth 1|查看子文件夹下的文件大小|
+|df|磁盘操作|df -h|看磁盘占用|
 
