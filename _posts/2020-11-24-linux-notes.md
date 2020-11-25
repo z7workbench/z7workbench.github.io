@@ -72,6 +72,7 @@ sudo nano /etc/fstab
 UUID=xxx  /mnt/xxx  xxx defaults  0 0
 ```
 中间使用空格或者Tab(\t)分隔。具体参数的意思是
+
 |字段|解释|
 |:---:|---|
 |file system|要挂载的分区或设备，不要被英文所迷惑|
@@ -118,6 +119,7 @@ sudo apt install exfat-fuse exfat-utils
 这样你可以访问并创建exFAT文件系统了，也就是说你可以使用``mkfs.exfat``进行格式化了。  
 这里**不建议**把大硬盘格式化成exFAT，因为会导致许多文件碎片。  
 # Linux常用指令
+
 |指令|类型|示例|解释|
 |:---:|:---:|---|---|
 |ls|文件夹操作|ls [dir]|查看对应目录中的内容，不写[dir]字段默认为当前目录|
