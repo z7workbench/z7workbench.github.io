@@ -52,8 +52,20 @@ sh ./NVIDIA-Linux-x86_64-xxx.xx.xx.run
 sh ./NVIDIA-Linux-x86_64-xxx.xx.xx.run --uninstall
 {% endhighlight %}
 
-# 永久挂载硬盘
-挂载硬盘也是一个基本操作，但是不能总是开机的时候使用mount指令挂载吧，有些硬盘还是让他永久挂载一下。
+# 挂载硬盘
+挂载硬盘也是一个基本操作，如果你需要通过外部的设备获取文件或数据，简单挂载就可以满足你的要求。但是一些长时间接入的大的硬盘不能总是开机的时候都让你手动挂载吧，有些硬盘还是让他永久挂载一下。
+## 手动挂载和解除挂载
+先提一下手动挂载。通过``sudo fdisk -l``先看看新接入的盘的具体的设备名称，通常是``/dev/sdXn``的形式。然后执行
+{% highlight bash %}
+sudo mount /dev/sdXn [dir]
+{% endhighlight %}
+其中，后面的参数为一个空目录，但是必须是一个存在的文件夹。解除挂载也很简单
+{% highlight bash %}
+sudo umount /dev/sdXn
+or
+sudo umount [dir]
+{% endhighlight %}
+两条指令都可以，参数可以是具体的设备名，也可以是具体的挂载点。
 ## 准备工作
 挂载硬盘需要硬盘的UUID信息和文件系统，两个信息可以通过1个指令进行查看
 {% highlight bash %}
@@ -146,7 +158,7 @@ set LD_LIBRARY_PATH /usr/local/cuda/lib64 $LD_LIBRARY_PATH
 set CUDA_HOME /usr/local/cuda
 ```
 这几条命令和BASH配置文件中的意思是一样的。同样你需要应用设置，``source .config/fish/config.fish``，或者重新进入Shell。
-## 在虚拟环境中（Virtualenv）修改对应配置文件
+## 在虚拟环境中（venv）修改对应配置文件
 事实上，虚拟环境的激活实际上是和``.bashrc``与``.config/fish/config.fish``一样的。在你通过virtualenv新建好环境之后进入到``bin``文件夹下。通过ls指令你可以看到一堆以**activate**开头的文件。其中，``activate``文件为Bash配置文件，``activate.fish``文件为Fish配置文件，``activate.ps1``文件为Powershell配置文件等等。如果想要在虚拟环境中使用CUDA，参照上述两个小节中的内容对Shell的对应配置文件进行修改即可。  
 # 共享文件服务Samba 1.0的设置
 现在有些老的NAS服务器仍然使用**不安全的**Samba 1.0服务，但是现在的大多数操作系统已经默认关闭，所以我们必须要打开才能够访问共享服务器。  
@@ -194,6 +206,8 @@ client min protocol = NT1
 |top|任务操作|top|任务管理器，实时更新|
 |ps|任务操作|ps -A<br>ps aux|查看当前所有的任务，可以看到具体的执行的命令和参数，结合grep指令可以筛选|
 |pwd|文件夹操作|pwd|查看当前目录的完整路径|
-|chmod<br>chown<br>chgrp|文件操作|chmod a+x [file]<br>chown [owner[:group]] [file]<br>chgrp [group] [file]|修改文件权限；修改文件所有者；修改文件所有组|
+|chmod<br>chown<br>chgrp|文件操作|chmod a+x [file]<br>chown [owner] [file]<br>chgrp [group] [file]|修改文件权限；修改文件所有者；修改文件所有组|
 |chsh|用户操作|chsh -s [shell] [user]|修改用户默认Shell|
-
+|mkdir|文件夹操作|mkdir [dir]|创建新文件夹|
+|passwd|用户操作|passwd [user]|修改用户密码|
+|shutdown|系统操作|shutdown now|关机操作，-r为重启，加now为立即执行|
