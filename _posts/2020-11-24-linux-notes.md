@@ -1,12 +1,12 @@
 ---
 layout:     article
-title:      "Linux Note / Linux折腾笔记"
+title:      "Linux Notes / Linux折腾笔记"
 author:     ZeroGo
 date:       2020-11-24 10:48:21 +0800
-# article_header:
-  # type:     cover
-  # image:
-    # src:    assets/articles_imgs/2020-10-26-android-notes/android_banner.webp
+article_header:
+  type:     cover
+  image:
+    src:    assets/articles_imgs/2020-11-24-linux-notes/linux-notes.webp
 ---
 为了防止自己反复折腾，搞一个折腾笔记还是有必要的！本篇笔记会持续更新。
 
