@@ -148,11 +148,33 @@ set CUDA_HOME /usr/local/cuda
 这几条命令和BASH配置文件中的意思是一样的。同样你需要应用设置，``source .config/fish/config.fish``，或者重新进入Shell。
 ## 在虚拟环境中（Virtualenv）修改对应配置文件
 事实上，虚拟环境的激活实际上是和``.bashrc``与``.config/fish/config.fish``一样的。在你通过virtualenv新建好环境之后进入到``bin``文件夹下。通过ls指令你可以看到一堆以**activate**开头的文件。其中，``activate``文件为Bash配置文件，``activate.fish``文件为Fish配置文件，``activate.ps1``文件为Powershell配置文件等等。如果想要在虚拟环境中使用CUDA，参照上述两个小节中的内容对Shell的对应配置文件进行修改即可。  
+# 共享文件服务Samba 1.0的设置
+现在有些老的NAS服务器仍然使用**不安全的**Samba 1.0服务，但是现在的大多数操作系统已经默认关闭，所以我们必须要打开才能够访问共享服务器。  
+经过测试，Ubuntu 18.04及以上都是可以使用这个方法的。首先你需要确保安装了Samba服务，否则配置了半天也没啥用  
+{% highlight bash %}
+sudo apt install samba
+{% endhighlight %}
+正常安装完毕之后应该可以通过命令``sudo systemctl status smbd.service``来查看Samba服务运行状态。  
+使用你最拿手的Linux文本编辑器，打开文件``/etc/samba/smb.conf``并找到``[global]``标签，在这标签下面输入
+```
+ntlm auth = ntlmv1-permitted
+client min protocol = NT1
+```
+使其变成
+```
+[global]
+...
+   ntlm auth = ntlmv1-permitted
+   client min protocol = NT1
+...
+```
+保存退出之后使用``sudo service smbd restart``重启服务即可。  
 # Linux常用指令
 这是我自己排的操作类型，不一定准确~
 
 |指令|类型|示例|解释|
 |:---:|:---:|---|---|
+|man|帮助操作|man [instruction]|看指令的说明文档|
 |ls|文件夹操作|ls [dir]|查看对应目录中的内容，不写[dir]字段默认为当前目录|
 |ll|文件夹操作|ll [dir]|等同于ls -l|
 |la|文件夹操作|la [dir]|等同于ls -a|
@@ -164,7 +186,7 @@ set CUDA_HOME /usr/local/cuda
 |cd|文件夹操作|cd [dir]|转到具体的文件夹内|
 |cat|文件操作|cat [file]|将文件打印在终端中|
 |less|文件操作|less [file]|查看文件，按q退出|
-|vi vim nano|文件操作|vi/vim/nano [file]|均为文本编辑器（vim一般需要安装）按照使用习惯使用|
+|vi<br>vim<br>nano|文件操作|vi/vim/nano [file]|均为文本编辑器（vim一般需要安装）按照使用习惯使用|
 |fdisk|磁盘操作|fdisk -l|磁盘分区、查看磁盘信息等|
 |mkfs|文件系统操作|mkfs.xxxx [partition]|创建文件系统|
 |sftp|远程操作|sftp [user]@[host]|SFTP安全文件传送协议，通常使用22端口（与SSH一样）有一套自己的指令|
