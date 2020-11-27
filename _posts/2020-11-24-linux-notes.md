@@ -43,13 +43,13 @@ sudo shutdown -r now
 记得给你的驱动程序加执行权限，并运行
 {% highlight bash %}
 chmod a+x ./NVIDIA-Linux-x86_64-xxx.xx.xx.run
-sh ./NVIDIA-Linux-x86_64-xxx.xx.xx.run
+sudo ./NVIDIA-Linux-x86_64-xxx.xx.xx.run
 {% endhighlight %}
 剩下的就可以按照安装程序的步骤安装即可。
 ## 卸载驱动
 有的时候驱动会崩掉，``nvidia-smi``中没有显示，需要重新安装一下驱动，此处仍然需要runfile安装文件，执行
 {% highlight bash %}
-sh ./NVIDIA-Linux-x86_64-xxx.xx.xx.run --uninstall
+sudo ./NVIDIA-Linux-x86_64-xxx.xx.xx.run --uninstall
 {% endhighlight %}
 
 # 挂载硬盘
