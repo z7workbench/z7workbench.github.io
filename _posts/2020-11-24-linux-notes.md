@@ -147,8 +147,9 @@ set CUDA_HOME /usr/local/cuda
 ```
 这几条命令和BASH配置文件中的意思是一样的。同样你需要应用设置，``source .config/fish/config.fish``，或者重新进入Shell。
 ## 在虚拟环境中（Virtualenv）修改对应配置文件
-事实上，虚拟环境的激活实际上是和``.bashrc``与``.config/fish/config.fish``一样的。在你通过virtualenv新建好环境之后进入到``bin``文件夹下。通过ls指令你可以看到一堆以**activate**开头的文件。其中，``activate``文件为Bash配置文件，``activate.fish``文件为Fish配置文件等等。如果想要在虚拟环境中使用CUDA，参照上述两个小节中的内容对Shell的对应配置文件进行修改即可。  
+事实上，虚拟环境的激活实际上是和``.bashrc``与``.config/fish/config.fish``一样的。在你通过virtualenv新建好环境之后进入到``bin``文件夹下。通过ls指令你可以看到一堆以**activate**开头的文件。其中，``activate``文件为Bash配置文件，``activate.fish``文件为Fish配置文件，``activate.ps1``文件为Powershell配置文件等等。如果想要在虚拟环境中使用CUDA，参照上述两个小节中的内容对Shell的对应配置文件进行修改即可。  
 # Linux常用指令
+这是我自己排的操作类型，不一定准确~
 
 |指令|类型|示例|解释|
 |:---:|:---:|---|---|
@@ -167,4 +168,7 @@ set CUDA_HOME /usr/local/cuda
 |fdisk|磁盘操作|fdisk -l|磁盘分区、查看磁盘信息等|
 |mkfs|文件系统操作|mkfs.xxxx [partition]|创建文件系统|
 |sftp|远程操作|sftp [user]@[host]|SFTP安全文件传送协议，通常使用22端口（与SSH一样）有一套自己的指令|
+|free|内存操作|free -m/-g/-h|查看内存使用情况，-m为以MB为单位，-g为以GB为单位，-h为自动选取单位|
+|top|任务操作|top|任务管理器，实时更新|
+|ps|任务操作|ps -A<br>ps aux|查看当前所有的任务，可以看到具体的执行的命令和参数|
 
