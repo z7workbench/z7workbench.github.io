@@ -46,6 +46,11 @@ chmod a+x ./NVIDIA-Linux-x86_64-xxx.xx.xx.run
 sh ./NVIDIA-Linux-x86_64-xxx.xx.xx.run
 {% endhighlight %}
 剩下的就可以按照安装程序的步骤安装即可。
+## 卸载驱动
+有的时候驱动会崩掉，``nvidia-smi``中没有显示，需要重新安装一下驱动，此处仍然需要runfile安装文件，执行
+{% highlight bash %}
+sh ./NVIDIA-Linux-x86_64-xxx.xx.xx.run --uninstall
+{% endhighlight %}
 
 # 永久挂载硬盘
 挂载硬盘也是一个基本操作，但是不能总是开机的时候使用mount指令挂载吧，有些硬盘还是让他永久挂载一下。
@@ -118,6 +123,31 @@ sudo apt install exfat-fuse exfat-utils
 {% endhighlight %}
 这样你可以访问并创建exFAT文件系统了，也就是说你可以使用``mkfs.exfat``进行格式化了。  
 这里**不建议**把大硬盘格式化成exFAT，因为会导致许多文件碎片。  
+# CUDA的设置
+如果你安装了多个CUDA，你需要指定具体的CUDA版本，否则通过``nvcc -V``是没法看到CUDA信息的。配置起来很简单。  
+## 修改BASH配置文件
+如果你的Shell使用的是BASH（一般都是默认使用bash）则在你的用户文件夹下面可以看到``.bashrc``文件，用你最喜欢用的文本编辑器打开
+{% highlight bash %}
+nano .bashrc
+{% endhighlight %}
+在最后添加以下字段
+```
+export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+export CUDA_HOME=/usr/local/cuda
+```
+具体的路径需要你自己看一下，一般来说CUDA都会安装在/usr/local下，/usr/local/cuda通常是一个软链接。  
+保存并退出之后需要使用``source .bashrc``应用设置，或者重新进入Shell。
+## 修改Fish配置文件
+如果你的Shell使用的是Fish，则在你的用户文件夹下面新建``.config/fish/config.fish``文件，并加入
+```
+set PATH /usr/local/cuda/bin $PATH
+set LD_LIBRARY_PATH /usr/local/cuda/lib64 $LD_LIBRARY_PATH
+set CUDA_HOME /usr/local/cuda
+```
+这几条命令和BASH配置文件中的意思是一样的。同样你需要应用设置，``source .config/fish/config.fish``，或者重新进入Shell。
+## 在虚拟环境中（Virtualenv）修改对应配置文件
+事实上，虚拟环境的激活实际上是和``.bashrc``与``.config/fish/config.fish``一样的。在你通过virtualenv新建好环境之后进入到``bin``文件夹下。通过ls指令你可以看到一堆以**activate**开头的文件。其中，``activate``文件为Bash配置文件，``activate.fish``文件为Fish配置文件等等。如果想要在虚拟环境中使用CUDA，参照上述两个小节中的内容对Shell的对应配置文件进行修改即可。  
 # Linux常用指令
 
 |指令|类型|示例|解释|
@@ -130,4 +160,11 @@ sudo apt install exfat-fuse exfat-utils
 |rm|文件操作|rm (-rf) [fire or folder]|删除文件或文件夹，文件夹需要加-r，-f为强制删除|
 |du|文件夹操作|du -h [dir] --max_depth 1|查看子文件夹下的文件大小|
 |df|磁盘操作|df -h|看磁盘占用|
+|cd|文件夹操作|cd [dir]|转到具体的文件夹内|
+|cat|文件操作|cat [file]|将文件打印在终端中|
+|less|文件操作|less [file]|查看文件，按q退出|
+|vi vim nano|文件操作|vi/vim/nano [file]|均为文本编辑器（vim一般需要安装）按照使用习惯使用|
+|fdisk|磁盘操作|fdisk -l|磁盘分区、查看磁盘信息等|
+|mkfs|文件系统操作|mkfs.xxxx [partition]|创建文件系统|
+|sftp|远程操作|sftp [user]@[host]|SFTP安全文件传送协议，通常使用22端口（与SSH一样）有一套自己的指令|
 
