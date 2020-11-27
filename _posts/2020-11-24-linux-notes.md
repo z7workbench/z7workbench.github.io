@@ -181,7 +181,7 @@ client min protocol = NT1
 |mv|文件操作|mv (-T) [file or folder]|移动或重命名文件或文件夹|
 |cp|文件操作|cp (-T -r) [file or folder]|复制文件或文件夹，文件夹需要加-r|
 |rm|文件操作|rm (-rf) [fire or folder]|删除文件或文件夹，文件夹需要加-r，-f为强制删除|
-|du|文件夹操作|du -h [dir] --max_depth 1|查看子文件夹下的文件大小|
+|du|文件夹操作|du -h [dir]|查看子文件夹下的文件大小|
 |df|磁盘操作|df -h|看磁盘占用|
 |cd|文件夹操作|cd [dir]|转到具体的文件夹内|
 |cat|文件操作|cat [file]|将文件打印在终端中|
@@ -192,5 +192,8 @@ client min protocol = NT1
 |sftp|远程操作|sftp [user]@[host]|SFTP安全文件传送协议，通常使用22端口（与SSH一样）有一套自己的指令|
 |free|内存操作|free -m/-g/-h|查看内存使用情况，-m为以MB为单位，-g为以GB为单位，-h为自动选取单位|
 |top|任务操作|top|任务管理器，实时更新|
-|ps|任务操作|ps -A<br>ps aux|查看当前所有的任务，可以看到具体的执行的命令和参数|
+|ps|任务操作|ps -A<br>ps aux|查看当前所有的任务，可以看到具体的执行的命令和参数，结合grep指令可以筛选|
+|pwd|文件夹操作|pwd|查看当前目录的完整路径|
+|chmod<br>chown<br>chgrp|文件操作|chmod a+x [file]<br>chown [owner[:group]] [file]<br>chgrp [group] [file]|修改文件权限；修改文件所有者；修改文件所有组|
+|chsh|用户操作|chsh -s [shell] [user]|修改用户默认Shell|
 
