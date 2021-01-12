@@ -16,3 +16,15 @@ android-cn:
       - title:    帮你节省时间的持续集成：Travis CI与GitHub Action
         url:      /android/ci
         key:      1.5-ci
+  - title:    组件
+    children:
+      - title:    从最基础的布局开始：ConstraintLayout 1.x
+        url:      /android/constraint
+        key:      2.1-constraint
+      - title:    必须使用的绑定组件工具：View Binding
+        url:      /android/view-binding
+        key:      2.2-view-binding
+      - title:    全新的可持续化数据方式：DataStore
+        url:      /android/datastore
+        key:      2.3-datastore
+      
