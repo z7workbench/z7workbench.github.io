@@ -3,12 +3,15 @@
 // Author: Tian Qi
 // Email: kitian616@outlook.com
 ///
+///8686FF
+///524d6b
+///ffcc00
 
 // main colors
 $main-color-1:     #ffcc00;
 $text-color-1:     rgba(#fff, .85);
 
-$main-color-2:     #8686FF;
+$main-color-2:     #ffcc00;
 $text-color-2:     rgba(#fff, .85);
 
 $main-color-3:     #8686FF;
@@ -18,12 +21,12 @@ $main-color-theme-light: rgba(#000, .9);
 $main-color-theme-dark:  rgba(#fff, .9);
 
 // page background
-$background-color: #bfffd0;
+$background-color: #55558c;
 
 // text colors
-$text-color-theme-light-d: rgba(#000, .95);
-$text-color-theme-light:   rgba(#000, .85);
-$text-color-theme-light-l: rgba(#000, .5);
+$text-color-theme-light-d: rgba(#fff, .95);
+$text-color-theme-light:   rgba(#fff, .85);
+$text-color-theme-light-l: rgba(#fff, .5);
 
 $text-color-theme-dark-d:  #fff;
 $text-color-theme-dark:    rgba(#fff, .95);
@@ -33,7 +36,7 @@ $text-color-d:     $text-color-theme-light-d;
 $text-color:       $text-color-theme-light;
 $text-color-l:     $text-color-theme-light-l;
 
-$text-background-color: rgba(#000, .05);
+$text-background-color: rgba(#fff, .05);
 
 // header and footer colors
 $header-text-color: $text-color-3;
@@ -44,9 +47,9 @@ $footer-background: $main-color-3;
 
 // border and shadow colors
 $border-color:     $main-color-3;
-$border-color-l:   mix(#000, $background-color, 10%);
-$decorate-color:   rgba(#000, .1);
-$mask-color:       rgba(#000, .9);
+$border-color-l:   mix(#fff, $background-color, 10%);
+$decorate-color:   rgba(#fff, .1);
+$mask-color:       rgba(#fff, .9);
 $select-color:     rgba($main-color-3, .5);
 
 // function colors
