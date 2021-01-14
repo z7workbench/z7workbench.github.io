@@ -17,7 +17,7 @@ theme: jekyll-text-theme # Gem-based Jekyll Themes
 ## => Site Settings
 ##############################
 text_skin: go # "default" (default), "dark", "forest", "ocean", "chocolate", "orange"
-highlight_theme: tomorrow # "default" (default), "tomorrow", "tomorrow-night", "tomorrow-night-eighties", "tomorrow-night-blue", "tomorrow-night-bright"
+highlight_theme: tomorrow-night-eighties # "default" (default), "tomorrow", "tomorrow-night", "tomorrow-night-eighties", "tomorrow-night-blue", "tomorrow-night-bright"
 url     : https://www.z7workbench.xin/ # the base hostname & protocol for your site e.g. https://www.someone.com
 baseurl : # does not include hostname
 title   : ZeroGo's Workbench🔨 / 小Z的工作台
@@ -36,7 +36,7 @@ author:
   name      : ZeroGoYoosee
   url       : https://www.z7workbench.xin/
   avatar    : # path or url of avatar image (square)
-  bio       : A very weak programmer, Hearthstone/StarCraft II/Overwatch player, fan of Ghost-Spider
+  bio       : A very weak programmer, Hearthstone/StarCraft II/Overwatch player, fan of Marvel's Ghost-Spider
   email     :
   facebook  : # "user_name" the last part of your profile url, e.g. https://www.facebook.com/user_name
   twitter   : # "user_name" the last part of your profile url, e.g. https://twitter.com/user_name
