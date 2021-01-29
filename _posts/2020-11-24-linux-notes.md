@@ -2,11 +2,11 @@
 layout:     article
 title:      "Linux Notes / Linux折腾笔记"
 author:     ZeroGo
-date:       2020-11-24 10:48:21 +0800
+date:       2021-01-29 12:42:21 +0800
 article_header:
   type:     cover
   image:
-    src:    assets/articles_imgs/2020-11-24-linux-notes/linux-notes.webp
+    src:    assets/articles_imgs/2021-01-29-linux-notes/linux-notes.webp
 ---
 为了防止自己反复折腾，搞一个折腾笔记还是有必要的！本篇笔记会持续更新。
 
@@ -180,7 +180,15 @@ client min protocol = NT1
    client min protocol = NT1
 ...
 ```
-保存退出之后使用``sudo service smbd restart``重启服务即可。  
+保存退出之后使用``sudo service smbd restart``重启服务即可。
+# 安装字体
+如果是使用图形界面，安装字体很简单，但是使用命令行稍微有些复杂。首先将字体文件复制到``/usr/share/fonts``中，到文件夹中执行
+{% highlight bash %}
+sudo mkfontscale
+sudo mkfontdir
+sudo fc-cache
+{% endhighlight %}
+
 # Linux常用指令
 这是我自己排的操作类型，不一定准确~
 
