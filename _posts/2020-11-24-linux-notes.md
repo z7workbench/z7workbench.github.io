@@ -189,6 +189,41 @@ sudo mkfontdir
 sudo fc-cache
 {% endhighlight %}
 
+# Kodi
+Kodi媒体中心是一个屡获殊荣的自由和开源的跨平台媒体播放器和用于HTPC（Home theater PC，家庭影院PC）的数字媒体娱乐中心软件，可以运行在Linux、OSX、Windows、Android系统。它是一个优秀的自由和开源的（GPL）媒体中心软件。最初为Xbox而开发，叫XBMC(全称是XBOX Media Center)。
+## 树莓派安装
+准备好系统，可以选择Raspbian（现在叫Raspberry Pi OS）使用命令安装kodi
+{% highlight bash %}
+sudo apt install kodi
+{% endhighlight %}
+安装一系列[插件](https://kodi.wiki/view/Add-ons)
+{% highlight bash %}
+apt install kodi-peripheral-joystick kodi-pvr-iptvsimple kodi-inputstream-adaptive kodi-inputstream-rtmp
+{% endhighlight %}
+开机启动
+{% highlight bash %}
+$ sudo tee -a /lib/systemd/system/kodi.service <<_EOF_
+[Unit]
+Description = Kodi Media Center
+After = remote-fs.target network-online.target
+Wants = network-online.target
+
+[Service]
+User = pi
+Group = pi
+Type = simple
+ExecStart = /usr/bin/kodi
+Restart = on-abort
+RestartSec = 5
+
+[Install]
+WantedBy = multi-user.target
+_EOF_
+
+sudo service kodi start
+{% endhighlight %}
+
+
 # Linux常用指令
 这是我自己排的操作类型，不一定准确~
 
