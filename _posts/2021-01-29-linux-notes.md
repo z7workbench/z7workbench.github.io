@@ -202,7 +202,7 @@ apt install kodi-peripheral-joystick kodi-pvr-iptvsimple kodi-inputstream-adapti
 {% endhighlight %}
 开机启动
 {% highlight bash %}
-$ sudo tee -a /lib/systemd/system/kodi.service <<_EOF_
+sudo tee -a /lib/systemd/system/kodi.service <<_EOF_
 [Unit]
 Description = Kodi Media Center
 After = remote-fs.target network-online.target
