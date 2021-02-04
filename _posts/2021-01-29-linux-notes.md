@@ -6,7 +6,7 @@ date:       2021-01-29 12:42:21 +0800
 article_header:
   type:     cover
   image:
-    src:    assets/articles_imgs/2021-01-29-linux-notes/linux-notes.webp
+    src:    assets/articles_imgs/2021-01-29-linux-notes/linux_notes.webp
 ---
 为了防止自己反复折腾，搞一个折腾笔记还是有必要的！本篇笔记会持续更新。
 
