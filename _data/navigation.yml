@@ -37,15 +37,15 @@ android-cn:
       - title:    全新的可持续化数据方式：DataStore
         url:      /android/datastore
         key:      2.3-datastore
-      - title:    最强大的列表控件：RecyclerView
-        url:      /android/recycler
-        key:      2.4-recycler
-      - title:    现代化的设计模式：MVVM模式以及ViewModel、LiveData
-        url:      /android/mvvm
-        key:      2.5-mvvm
       - title:    简单易用的ORM数据库包：Room
         url:      /android/room
-        key:      2.6-room
+        key:      2.4-room
+      - title:    最强大的列表控件：RecyclerView
+        url:      /android/recycler
+        key:      2.5-recycler
+      - title:    现代化的设计模式：MVVM模式以及ViewModel、LiveData
+        url:      /android/mvvm
+        key:      2.6-mvvm
       - title:    全盘Fragment化的基础：Navigation导航组件
         url:      /android/navigation
         key:      2.7-navigation
