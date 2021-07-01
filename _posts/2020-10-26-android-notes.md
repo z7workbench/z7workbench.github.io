@@ -6,7 +6,7 @@ date:       2020-10-26 12:18:00 +0800
 article_header:
   type:     cover
   image:
-    src:    assets/articles_imgs/2020-10-26-android-notes/android_banner.webp
+    src:    assets/articles_imgs/0002-android-notes/android_banner.webp
 ---
 The Android notes I planned before were posted to my blog before CSDN, and I am going to update them in chapters. You can click on the [link](https://www.z7workbench.xin/android/home) to view, or click on the Android Notes in the upper navigation bar to view!
 
