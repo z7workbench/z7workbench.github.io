@@ -6,7 +6,7 @@ date:       2021-06-30 08:55:42 +0800
 article_header:
   type:     cover
   image:
-    src:    assets/articles_imgs/0003-linux-notes/linux-notes.webp
+    src:    assets/articles_imgs/0003-linux-notes/linux_notes.webp
 ---
 为了防止自己反复折腾，搞一个折腾笔记还是有必要的！本篇笔记会持续更新。
 
@@ -181,7 +181,7 @@ client min protocol = NT1
 ...
 ```
 保存退出之后使用``sudo service smbd restart``重启服务即可。  
-# `rc-local`与开机自启动的那点事
+# "rc-local"与开机自启动的那点事
 自从Ubuntu在18.04之后默认关闭了开机自启动脚本服务，我就一直有开机自启动的需求。在抛弃了KDE neon、拥抱Ubuntu Kyrin之后，正式折腾了一遍``rc-local``服务...（其实之前也折腾过但是每次都忘了总结）
 ## 前期准备
 - 要准备好进行开机自启动的文件们
@@ -226,6 +226,7 @@ sudo service atd status
 
 ### 运行指令
 at指令的操作很简单，输入``at [option] [time]``即可开始编辑一个at指令。看一下at的命令选项。
+
 |   选项    | 含义                                                                     |
 | :-------: | ------------------------------------------------------------------------ |
 |    -m     | 当 at 工作完成后，无论命令是否输出，都用 E-mail 通知执行 at 命令的用户。 |
@@ -259,6 +260,7 @@ at now+5 hours
 watch指令用于实时刷新某些无法实时刷新的指令，例如nvidia-smi、netstat -ant。
 
 使用很简单：``watch [-n num] [-d] [-t]``
+
 | 命令选项 | 描述                                                                  |
 | :------: | --------------------------------------------------------------------- |
 |  -n num  | 每几秒运行一下程序，与--interval相同                                  |
@@ -295,4 +297,5 @@ watch指令用于实时刷新某些无法实时刷新的指令，例如nvidia-sm
 |          mkdir          |  文件夹操作  | mkdir [dir]                                                      | 创建新文件夹                                                             |
 |         passwd          |   用户操作   | passwd [user]                                                    | 修改用户密码                                                             |
 |        shutdown         |   系统操作   | shutdown now                                                     | 关机操作，-r为重启，加now为立即执行                                      |
+|           at            |   指令操作   | at now+5 hours                                                   | 定时执行某项任务                                                         |
 |          watch          |   指令操作   | watch nvidia-smi                                                 | 重复执行某指令并自动刷新命令行                                           |
