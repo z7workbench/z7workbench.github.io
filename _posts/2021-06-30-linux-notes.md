@@ -212,6 +212,39 @@ sudo nano /etc/rc.local
 {% highlight bash %}
 sudo service rc-local status
 {% endhighlight %}
+# 安装字体
+Linux安装字体的方式有主要两种：
+
+- 使用GUI的：可以直接双击字体文件进行安装
+- 使用命令行安装：一键三连
+
+## GUI方式
+GUI方式很简单，双击字体文件，点击安装即可，如下图所示。
+
+![Fonts-1 GUI安装字体](../assets/articles_imgs/0003-linux-notes/fonts-1.png)
+
+但是该安装方法会安装在对应的用户下，而且可能不支持一些字体文件扩展名，例如ttc，如下图所示。
+
+![Fonts-2 无法打开的情况](../assets/articles_imgs/0003-linux-notes/fonts-2.png)
+
+你可以通过执行``fc-list``和检索命令来查看字体的安装位置，如下图所示。
+
+![Fonts-3 fc-list指令查看对应字体安装位置](../assets/articles_imgs/0003-linux-notes/fonts-3.png)
+
+## 命令行方式
+为你的字体们创建一个全新的文件夹，该文件夹应该位于``/usr/share/fonts/``下：
+{% highlight bash %}
+sudo mkdir /usr/share/fonts/custom
+{% endhighlight %}
+
+将你的字体全部复制到该文件夹下，然后执行“一键三连”即可。
+{% highlight bash %}
+sudo mkfontscale
+sudo mkfontdir
+fc-cache
+{% endhighlight %}
+
+如此安装的字体所有用户都可以使用。
 # Linux常用指令
 该部分放一下常用的一些指令的讲解，结尾会有一个（我常用的）指令大列表。
 ## 定时执行——at指令
