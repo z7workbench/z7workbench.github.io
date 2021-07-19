@@ -221,15 +221,15 @@ Linux安装字体的方式有主要两种：
 ## GUI方式
 GUI方式很简单，双击字体文件，点击安装即可，如下图所示。
 
-![Fonts-1 GUI安装字体](../assets/articles_imgs/0003-linux-notes/fonts-1.webp)
+![Fonts-1 GUI安装字体](../../../assets/articles_imgs/0003-linux-notes/fonts-1.webp)
 
 但是该安装方法会安装在对应的用户下，而且可能不支持一些字体文件扩展名，例如ttc，如下图所示。
 
-![Fonts-2 无法打开的情况](../assets/articles_imgs/0003-linux-notes/fonts-2.webp)
+![Fonts-2 无法打开的情况](../../../assets/articles_imgs/0003-linux-notes/fonts-2.webp)
 
 你可以通过执行``fc-list``和检索命令来查看字体的安装位置，如下图所示。
 
-![Fonts-3 fc-list指令查看对应字体安装位置](../assets/articles_imgs/0003-linux-notes/fonts-3.webp)
+![Fonts-3 fc-list指令查看对应字体安装位置](../../../assets/articles_imgs/0003-linux-notes/fonts-3.webp)
 
 ## 命令行方式
 为你的字体们创建一个全新的文件夹，该文件夹应该位于``/usr/share/fonts/``下：
