@@ -245,6 +245,60 @@ fc-cache
 {% endhighlight %}
 
 如此安装的字体所有用户都可以使用。
+# Anaconda & Miniconda 多用户配置
+有些时候需要多用户的Anaconda或者Miniconda，但是网上的一些教程不太全，因此这里补全一下。
+## 安装conda
+Anaconda和Miniconda的过程是一样的，因此这里只用Miniconda举例。
+
+使用root用户（或者sudo）执行脚本，在安装位置的时候选择一个公共的位置安装，例如``/opt/miniconda3``
+{% highlight bash %}
+sudo sh miniconda3.sh
+{% endhighlight %}
+## 设置权限以及用户组
+设置用户组的原因是为了：
+
+- 防止其他用户直接在公共目录下的环境中建立虚拟环境
+- 防止其他用户直接修改
+- 防止其他程序修改
+
+新建一个用户组，并将对应用户、文件以及文件夹加入到这个组中
+{% highlight bash %}
+sudo groupadd conda
+sudo usermod -aG conda [username]
+sudo chgrp -R conda /opt/miniconda3
+sudo chmod 770 -R /opt/miniconda3
+sudo chmod g+s /opt/anaconda
+sudo chmod g+s `find /opt/anaconda -type d`
+sudo chmod g-w /opt/miniconda3/envs
+{% endhighlight %}
+g+s是在设置组继承，g-w是关闭读权限。
+## 具体用户修改
+此时其他用户是无法新建虚拟环境的，原因是因为在``conda config``中输出的``envs_dirs``默认排在第一位的是安装目录下的envs文件夹，而这个文件夹刚刚被我们设置了无写权限，所以并不直接创建虚拟环境。因此仍然需要做一些设置。
+
+在**对应的用户Shell环境下**执行下面的语句进行初始化
+{% highlight bash %}
+source /opt/miniconda3/bin/activate
+conda init
+conda config --add envs_dirs ~/.conda/envs
+{% endhighlight %}
+我也写了一段脚本，可以把这段放到一个sh文件中。
+{% highlight bash %}
+#!/bin/bash
+# make sure you have added this user to conda group
+if [ -n "$1" ]; then
+    source $1/bin/activate
+else
+    source /opt/miniconda3/bin/activate
+fi
+
+conda init
+conda config --add envs_dirs ~/.conda/envs
+{% endhighlight %}
+这个脚本允许输入一个含有安装地点的参数来设置。现在只需要执行这个脚本（假设命名为``initconda.sh``）即可
+{% highlight bash %}
+sudo -u [user] bash initconda.sh
+{% endhighlight %}
+这样就可以在有sudo权限的用户下统一设置了。
 # Linux常用指令
 该部分放一下常用的一些指令的讲解，结尾会有一个（我常用的）指令大列表。
 ## 定时执行——at指令
