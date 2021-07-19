@@ -5,7 +5,7 @@ permalink: /android/home
 article_header:
   type:     cover
   image:
-    src:    assets/articles_imgs/2020-10-26-android-notes/android_banner.webp
+    src:    assets/articles_imgs/0002-android-notes/android_banner.webp
 sidebar:
   nav: android-cn
 ---

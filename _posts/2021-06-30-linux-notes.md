@@ -115,9 +115,9 @@ sudo fdisk /dev/sdX
 建完了分区就算搞定了吗？并不是，这里与Windows不同，Windows通过磁盘管理可以直接一步到位，Linux中是将这个过程拆成了两个。现在使用强大的``mkfs``指令进行创建文件系统的工作吧！
 你如果不熟悉mkfs指令的操作，可以输入``man mkfs``来看一下这个操作。其实很简单
 {% highlight bash %}
-sudo mkfs -t <type> /dev/sdXn
+sudo mkfs -t [type] /dev/sdXn
 {% endhighlight %}
-``<type>``处写你想要的文件系统类型，``sdXn``为你要格式化的分区。举个例子吧：
+``[type]``处写你想要的文件系统类型，``sdXn``为你要格式化的分区。举个例子吧：
 {% highlight bash %}
 sudo mkfs -t ext4 /dev/sdb1
 {% endhighlight %}
