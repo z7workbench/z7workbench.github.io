@@ -1,0 +1,1590 @@
+<!DOCTYPE html><html lang="cn">
+  <head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"><title>Linux Notes / Linux折腾笔记 - ZeroGo's Workbench🔨 / 小Z的工作台</title>
+
+<meta name="description" content="为了防止自己反复折腾，搞一个折腾笔记还是有必要的！本篇笔记会持续更新。安装NVIDIA驱动众所周知，在Linux操作系统中安装NVIDIA驱动是一件非常麻烦的事情，而且很容易崩溃。下面介绍如何使用官方的RunFile文件进行安装驱动。准备工作你需要将驱动程序提前放入到你的电脑中，否则到命令行中复制还得需要挂载或者...">
+<link rel="canonical" href="https://www.z7workbench.xin//2021/06/30/linux-notes.html"><link rel="alternate" type="application/rss+xml" title="ZeroGo's Workbench🔨 / 小Z的工作台" href="/"><link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png"><link rel="manifest" href="/assets/site.webmanifest"><link rel="mask-icon" href="/assets/safari-pinned-tab.svg" color="#5bbad5">
+<meta name="msapplication-TileColor" content="#8686ff">
+<meta name="theme-color" content="#ffffff"><link rel="stylesheet" href="/assets/css/main.css"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" ><!-- start custom head snippets -->
+
+<!-- end custom head snippets -->
+<script>(function() {
+  window.isArray = function(val) {
+    return Object.prototype.toString.call(val) === '[object Array]';
+  };
+  window.isString = function(val) {
+    return typeof val === 'string';
+  };
+
+  window.hasEvent = function(event) {
+    return 'on'.concat(event) in window.document;
+  };
+
+  window.isOverallScroller = function(node) {
+    return node === document.documentElement || node === document.body || node === window;
+  };
+
+  window.isFormElement = function(node) {
+    var tagName = node.tagName;
+    return tagName === 'INPUT' || tagName === 'SELECT' || tagName === 'TEXTAREA';
+  };
+
+  window.pageLoad = (function () {
+    var loaded = false, cbs = [];
+    window.addEventListener('load', function () {
+      var i;
+      loaded = true;
+      if (cbs.length > 0) {
+        for (i = 0; i < cbs.length; i++) {
+          cbs[i]();
+        }
+      }
+    });
+    return {
+      then: function(cb) {
+        cb && (loaded ? cb() : (cbs.push(cb)));
+      }
+    };
+  })();
+})();
+(function() {
+  window.throttle = function(func, wait) {
+    var args, result, thisArg, timeoutId, lastCalled = 0;
+
+    function trailingCall() {
+      lastCalled = new Date;
+      timeoutId = null;
+      result = func.apply(thisArg, args);
+    }
+    return function() {
+      var now = new Date,
+        remaining = wait - (now - lastCalled);
+
+      args = arguments;
+      thisArg = this;
+
+      if (remaining <= 0) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+        lastCalled = now;
+        result = func.apply(thisArg, args);
+      } else if (!timeoutId) {
+        timeoutId = setTimeout(trailingCall, remaining);
+      }
+      return result;
+    };
+  };
+})();
+(function() {
+  var Set = (function() {
+    var add = function(item) {
+      var i, data = this._data;
+      for (i = 0; i < data.length; i++) {
+        if (data[i] === item) {
+          return;
+        }
+      }
+      this.size ++;
+      data.push(item);
+      return data;
+    };
+
+    var Set = function(data) {
+      this.size = 0;
+      this._data = [];
+      var i;
+      if (data.length > 0) {
+        for (i = 0; i < data.length; i++) {
+          add.call(this, data[i]);
+        }
+      }
+    };
+    Set.prototype.add = add;
+    Set.prototype.get = function(index) { return this._data[index]; };
+    Set.prototype.has = function(item) {
+      var i, data = this._data;
+      for (i = 0; i < data.length; i++) {
+        if (this.get(i) === item) {
+          return true;
+        }
+      }
+      return false;
+    };
+    Set.prototype.is = function(map) {
+      if (map._data.length !== this._data.length) { return false; }
+      var i, j, flag, tData = this._data, mData = map._data;
+      for (i = 0; i < tData.length; i++) {
+        for (flag = false, j = 0; j < mData.length; j++) {
+          if (tData[i] === mData[j]) {
+            flag = true;
+            break;
+          }
+        }
+        if (!flag) { return false; }
+      }
+      return true;
+    };
+    Set.prototype.values = function() {
+      return this._data;
+    };
+    return Set;
+  })();
+
+  window.Lazyload = (function(doc) {
+    var queue = {js: [], css: []}, sources = {js: {}, css: {}}, context = this;
+    var createNode = function(name, attrs) {
+      var node = doc.createElement(name), attr;
+      for (attr in attrs) {
+        if (attrs.hasOwnProperty(attr)) {
+          node.setAttribute(attr, attrs[attr]);
+        }
+      }
+      return node;
+    };
+    var end = function(type, url) {
+      var s, q, qi, cbs, i, j, cur, val, flag;
+      if (type === 'js' || type ==='css') {
+        s = sources[type], q = queue[type];
+        s[url] = true;
+        for (i = 0; i < q.length; i++) {
+          cur = q[i];
+          if (cur.urls.has(url)) {
+            qi = cur, val = qi.urls.values();
+            qi && (cbs = qi.callbacks);
+            for (flag = true, j = 0; j < val.length; j++) {
+              cur = val[j];
+              if (!s[cur]) {
+                flag = false;
+              }
+            }
+            if (flag && cbs && cbs.length > 0) {
+              for (j = 0; j < cbs.length; j++) {
+                cbs[j].call(context);
+              }
+              qi.load = true;
+            }
+          }
+        }
+      }
+    };
+    var load = function(type, urls, callback) {
+      var s, q, qi, node, i, cur,
+        _urls = typeof urls === 'string' ? new Set([urls]) : new Set(urls), val, url;
+      if (type === 'js' || type ==='css') {
+        s = sources[type], q = queue[type];
+        for (i = 0; i < q.length; i++) {
+          cur = q[i];
+          if (_urls.is(cur.urls)) {
+            qi = cur;
+            break;
+          }
+        }
+        val = _urls.values();
+        if (qi) {
+          callback && (qi.load || qi.callbacks.push(callback));
+          callback && (qi.load && callback());
+        } else {
+          q.push({
+            urls: _urls,
+            callbacks: callback ? [callback] : [],
+            load: false
+          });
+          for (i = 0; i < val.length; i++) {
+            node = null, url = val[i];
+            if (s[url] === undefined) {
+              (type === 'js' ) && (node = createNode('script', { src: url }));
+              (type === 'css') && (node = createNode('link', { rel: 'stylesheet', href: url }));
+              if (node) {
+                node.onload = (function(type, url) {
+                  return function() {
+                    end(type, url);
+                  };
+                })(type, url);
+                (doc.head || doc.body).appendChild(node);
+                s[url] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+    return {
+      js: function(url, callback) {
+        load('js', url, callback);
+      },
+      css: function(url, callback) {
+        load('css', url, callback);
+      }
+    };
+  })(this.document);
+})();
+</script><script>
+  (function() {
+    var TEXT_VARIABLES = {
+      version: '2.2.6',
+      sources: {
+        font_awesome: 'https://use.fontawesome.com/releases/v5.0.13/css/all.css',
+        jquery: 'https://cdn.bootcss.com/jquery/3.1.1/jquery.min.js',
+        leancloud_js_sdk: '//cdn.jsdelivr.net/npm/leancloud-storage@3.13.2/dist/av-min.js',
+        chart: 'https://cdn.bootcss.com/Chart.js/2.7.2/Chart.bundle.min.js',
+        gitalk: {
+          js: 'https://cdn.bootcss.com/gitalk/1.2.2/gitalk.min.js',
+          css: 'https://cdn.bootcss.com/gitalk/1.2.2/gitalk.min.css'
+        },
+        valine: 'https://unpkg.com/valine/dist/Valine.min.js',
+        mathjax: 'https://cdn.bootcss.com/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML',
+        mermaid: 'https://cdn.bootcss.com/mermaid/8.0.0-rc.8/mermaid.min.js'
+      },
+      site: {
+        toc: {
+          selectors: 'h1,h2,h3'
+        }
+      },
+      paths: {
+        search_js: '/assets/search.js'
+      }
+    };
+    window.TEXT_VARIABLES = TEXT_VARIABLES;
+  })();
+</script>
+</head>
+  <body>
+    <div class="root" data-is-touch="false">
+      <div class="layout--page js-page-root"><div class="page__main js-page-main page__viewport has-aside cell cell--auto">
+
+      <div class="page__main-inner"><div class="page__header d-print-none"><header class="header"><div class="main">
+      <div class="header__title">
+        <div class="header__brand"><svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><defs><style>.cls-1{fill:#8686ff;}.cls-2{fill:#fff;}.cls-3{fill:#fc0;}</style></defs><title>ZeroGo</title><rect class="cls-1" width="500" height="500"/><path class="cls-2" d="M250,225v50H448.45a202.39,202.39,0,0,0,0-50Z"/><path class="cls-3" d="M352.31,78.13l-4.84-2.8a199.72,199.72,0,0,0-19.88-9.72L129.13,409.35a201.58,201.58,0,0,0,18.56,12.52l4.84,2.8a199.72,199.72,0,0,0,19.88,9.72L370.87,90.65A201.58,201.58,0,0,0,352.31,78.13Z"/><path class="cls-3" d="M250,100a149.77,149.77,0,0,1,52.32,9.38l25.27-43.77a200.2,200.2,0,0,0-219,43l35.35,35.35A149.57,149.57,0,0,1,250,100Z"/><path class="cls-2" d="M100,250a149.57,149.57,0,0,1,43.93-106.07l-35.35-35.35a200,200,0,0,0,20.55,300.77l25.27-43.76A149.7,149.7,0,0,1,100,250Z"/><path class="cls-3" d="M250,400a149.77,149.77,0,0,1-52.32-9.38l-25.27,43.77a200.17,200.17,0,0,0,219-43l-35.35-35.35A149.55,149.55,0,0,1,250,400Z"/><path class="cls-2" d="M448.45,275H397.91a149.67,149.67,0,0,1-41.85,81.06l35.35,35.35A199.42,199.42,0,0,0,448.45,275Z"/><path class="cls-3" d="M347.47,75.33l4.84,2.8C350.71,77.17,349.09,76.24,347.47,75.33Z"/><path class="cls-3" d="M152.53,424.67l-4.84-2.8Q150.09,423.31,152.53,424.67Z"/></svg><a title="ZeroGo's Workbench🔨
+" href="/">ZeroGo's Workbench🔨 / 小Z的工作台</a></div><button class="button button--secondary button--circle search-button js-search-toggle"><i class="fas fa-search"></i></button></div><nav class="navigation">
+        <ul><li class="navigation__item"><a href="/index">Home</a></li><li class="navigation__item"><a href="/archive">Archive</a></li><li class="navigation__item"><a href="/android/home">Android Notes</a></li><li class="navigation__item"><a href="/about">About</a></li><li><button class="button button--secondary button--circle search-button js-search-toggle"><i class="fas fa-search"></i></button></li></ul>
+      </nav></div>
+  </header>
+</div><div class="page__content"><img class="article__header--cover" src="/assets/articles_imgs/0003-linux-notes/linux_notes.webp"></img><div class ="main"><div class="grid grid--reverse">
+
+              <div class="col-aside d-print-none js-col-aside"><aside class="page__aside js-page-aside"><div class="toc-aside js-toc-root"></div>
+</aside></div>
+
+              <div class="col-main cell cell--auto"><!-- start custom main top snippet -->
+
+<!-- end custom main top snippet -->
+<article itemscope itemtype="http://schema.org/Article"><div class="article__header"><header><h1>Linux Notes / Linux折腾笔记</h1></header><span class="split-space">&nbsp;</span>
+          <a class="edit-on-github"
+            title=""
+            href="https://github.com/z7workbench/z7workbench.github.io/tree/main/_posts/2021-06-30-linux-notes.md">
+            <i class="far fa-edit"></i></a></div><meta itemprop="headline" content="Linux Notes / Linux折腾笔记"><div class="article__info clearfix"><ul class="right-col menu"><li><i class="fas fa-user"></i> <span>ZeroGoYoosee</span></li><li><i class="far fa-calendar-alt"></i> <span>2021-06-30 00:55:42 +0000</span>
+            </li></ul></div><meta itemprop="author" content="ZeroGoYoosee"/><meta itemprop="datePublished" content="2021-06-30T00:55:42+00:00"><div class="js-article-content"><div class="layout--article"><!-- start custom article top snippet -->
+
+<!-- end custom article top snippet -->
+<div class="article__content" itemprop="articleBody"><p>为了防止自己反复折腾，搞一个折腾笔记还是有必要的！本篇笔记会持续更新。</p>
+
+<h1 id="安装nvidia驱动">安装NVIDIA驱动</h1>
+<p>众所周知，在Linux操作系统中安装NVIDIA驱动是一件非常麻烦的事情，而且很容易崩溃。下面介绍如何使用官方的RunFile文件进行安装驱动。</p>
+<h2 id="准备工作">准备工作</h2>
+<p>你需要将驱动程序提前放入到你的电脑中，否则到命令行中复制还得需要挂载或者下载等操作浪费时间。<br />
+安装驱动安装程序所需要的软件：<code class="language-plaintext highlighter-rouge">gcc cmake make</code>，例如</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>apt <span class="nb">install </span>gcc cmake make</code></pre></figure>
+
+<h2 id="禁用linux通用图形界面驱动nouveau">禁用Linux通用图形界面驱动nouveau</h2>
+<p>打开<code class="language-plaintext highlighter-rouge">/etc/modprobe.d/blacklist.conf</code>文件</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>nano /etc/modprobe.d/blacklist.conf</code></pre></figure>
+
+<p>在文件的末尾添加</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>blacklist nouveau
+options nouveau modeset=0
+</code></pre></div></div>
+<p>保存后退出，输入指令</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>update-initramfs <span class="nt">-u</span></code></pre></figure>
+
+<p>更新配置，重启（下列指令都可以重启）</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>reboot
+<span class="nb">sudo </span>shutdown <span class="nt">-r</span> now</code></pre></figure>
+
+<h2 id="安装驱动">安装驱动</h2>
+<p>重启之后应该无法打开图形界面（通过图形界面登录应该进不去桌面），打开tty超级终端界面进行登录。<br />
+记得给你的驱动程序加执行权限，并运行</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">chmod </span>a+x ./NVIDIA-Linux-x86_64-xxx.xx.xx.run
+<span class="nb">sudo</span> ./NVIDIA-Linux-x86_64-xxx.xx.xx.run</code></pre></figure>
+
+<p>剩下的就可以按照安装程序的步骤安装即可。</p>
+<h2 id="卸载驱动">卸载驱动</h2>
+<p>有的时候驱动会崩掉，<code class="language-plaintext highlighter-rouge">nvidia-smi</code>中没有显示，需要重新安装一下驱动，此处仍然需要runfile安装文件，执行</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo</span> ./NVIDIA-Linux-x86_64-xxx.xx.xx.run <span class="nt">--uninstall</span></code></pre></figure>
+
+<h1 id="挂载硬盘">挂载硬盘</h1>
+<p>挂载硬盘也是一个基本操作，如果你需要通过外部的设备获取文件或数据，简单挂载就可以满足你的要求。但是一些长时间接入的大的硬盘不能总是开机的时候都让你手动挂载吧，有些硬盘还是让他永久挂载一下。</p>
+<h2 id="手动挂载和解除挂载">手动挂载和解除挂载</h2>
+<p>先提一下手动挂载。通过<code class="language-plaintext highlighter-rouge">sudo fdisk -l</code>先看看新接入的盘的具体的设备名称，通常是<code class="language-plaintext highlighter-rouge">/dev/sdXn</code>的形式。然后执行</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>mount /dev/sdXn <span class="o">[</span><span class="nb">dir</span><span class="o">]</span></code></pre></figure>
+
+<p>其中，后面的参数为一个空目录，但是必须是一个存在的文件夹。解除挂载也很简单</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>umount /dev/sdXn
+or
+<span class="nb">sudo </span>umount <span class="o">[</span><span class="nb">dir</span><span class="o">]</span></code></pre></figure>
+
+<p>两条指令都可以，参数可以是具体的设备名，也可以是具体的挂载点。</p>
+<h2 id="准备工作-1">准备工作</h2>
+<p>挂载硬盘需要硬盘的UUID信息和文件系统，两个信息可以通过1个指令进行查看</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>blkid</code></pre></figure>
+
+<p>它会打印出每个分区(partition)的信息，free space不会显示在上面。每条信息都会形如</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/dev/sdXn: LABEL="xxx" UUID="xxx" TYPE="xxx" ...
+</code></pre></div></div>
+<p>LABEL有的盘有Label有的盘没有，这取决于你在使用mkfs指令的时候指没指定Label，对于挂载硬盘来说不太需要这个，我们要的是UUID和TYPE，前者就是UUID啦，后者是磁盘的文件系统类型。<br />
+<code class="language-plaintext highlighter-rouge">lsblk -f</code>指令也可以达到上面命令的效果，而且更直观，你可以根据你的使用习惯来决定使用哪个命令。</p>
+<h2 id="永久挂载硬盘">永久挂载硬盘</h2>
+<p>编辑<code class="language-plaintext highlighter-rouge">/etc/fstab</code>文件</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>nano /etc/fstab</code></pre></figure>
+
+<p>可以看到，所有的硬盘的挂载都写在了这个文件中，包括你的系统盘、swap分区等等。在此处你可以挂载硬盘，包括NTFS文件系统的磁盘也可以挂载。<br />
+具体的格式是</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;file system&gt; &lt;mount point&gt; &lt;type&gt;  &lt;options&gt; &lt;dump&gt;  &lt;pass&gt;
+UUID=xxx  /mnt/xxx  xxx defaults  0 0
+</code></pre></div></div>
+<p>中间使用空格或者Tab(\t)分隔。具体参数的意思是</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">字段</th>
+      <th>解释</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">file system</td>
+      <td>要挂载的分区或设备，不要被英文所迷惑</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">mount point</td>
+      <td>挂载点，说白了你要在哪里访问你的设备</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">type</td>
+      <td>挂载的分区或设备是什么文件系统类型，常见的有ext4、ntfs、auto等</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">options</td>
+      <td>挂载时的参数，一般使用defaults即可</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">dump</td>
+      <td>该挂载后的文件系统能否被dump备份命令作用，0为不能，1为每天都进行dump备份，2为不定期进行dump备份，一般选择0</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">pass</td>
+      <td>开机时是否检查磁盘，0为不检查，1为优先校验（根目录会使用这个），2为校验，一般选择0</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>执行完成之后进行重启，你的电脑即可自动挂载硬盘。<br />
+<strong>注意！</strong>千万不要写错了，否则进不去系统。我之前曾经把<code class="language-plaintext highlighter-rouge">defaults</code>少写了一个s，就进不去图形界面了。不过写错了也不要担心，系统如果发现这个文件发生了错误，只要你的根目录挂载没问题，他就会进入到超级终端中，允许你再次更改fstab文件。</p>
+<h2 id="ps-为磁盘分区并格式化成想要的文件系统类型">P.S.: 为磁盘分区并格式化成想要的文件系统类型</h2>
+<p>如果你的磁盘都是free space的话，挂载是挂载不了的，就相当于Windows中的Disk Manager（磁盘管理）中显示未分配是一样的效果。所以使用指令分区是一项重要的技能。<br />
+那么如何分区呢？使用强大的<code class="language-plaintext highlighter-rouge">fdisk</code>指令吧！<br />
+我们都知道，看磁盘信息一个重要的指令就是<code class="language-plaintext highlighter-rouge">sudo fdisk -l</code>，那么这个指令也可以用于分区。直接输入</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>fdisk /dev/sdX</code></pre></figure>
+
+<p>其中，<code class="language-plaintext highlighter-rouge">sdX</code>是你的具体的设备名称，可以通过<code class="language-plaintext highlighter-rouge">sudo fdisk -l</code>指令进行查看。<br />
+在新的界面中，按m加回车可以看到每一个小指令的介绍，这里只介绍最基本的分区操作：将整个盘分成1个区。<br />
+输入n和回车进入到新建分区中，再选择主分区（输入p和回车），输入1和回车，再输入两次回车（默认的设置）即可设置完成一个盘的一个分区的建立。<br />
+当然还没有完成，因为这只是规划了一下，并没有实际应用。因此你仍然需要输入w和回车进行应用更改，然后<code class="language-plaintext highlighter-rouge">fdisk</code>就会帮助你进行应用更改。<br />
+建完了分区就算搞定了吗？并不是，这里与Windows不同，Windows通过磁盘管理可以直接一步到位，Linux中是将这个过程拆成了两个。现在使用强大的<code class="language-plaintext highlighter-rouge">mkfs</code>指令进行创建文件系统的工作吧！
+你如果不熟悉mkfs指令的操作，可以输入<code class="language-plaintext highlighter-rouge">man mkfs</code>来看一下这个操作。其实很简单</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>mkfs <span class="nt">-t</span> <span class="o">[</span><span class="nb">type</span><span class="o">]</span> /dev/sdXn</code></pre></figure>
+
+<p><code class="language-plaintext highlighter-rouge">[type]</code>处写你想要的文件系统类型，<code class="language-plaintext highlighter-rouge">sdXn</code>为你要格式化的分区。举个例子吧：</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>mkfs <span class="nt">-t</span> ext4 /dev/sdb1</code></pre></figure>
+
+<p>当然你可以将上面的命令简单简写为</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>mkfs.ext4 /dev/sdb1</code></pre></figure>
+
+<p>也是一样的。</p>
+<h2 id="ps-使用exfat文件系统">P.S.: 使用exFAT文件系统</h2>
+<p>文件配置表（File Allocation Table，FAT）是微软发明的一种文件系统类型，Windows和Linux均支持，可用于跨操作系统传输文件。经典的FAT有FAT16、FAT32，缺点就是占用空间大，容易产生文件碎片，磁盘读写效率会比较低。<br />
+如果需要长时间跨越操作系统操作，那么选用FAT文件系统是很不错的选择。但是常见的FAT32不支持单个文件大小超过3.6G，因此exFAT(FAT64)孕育而出。<br />
+Linux在内核5.4版本的时候支持了exFAT文件系统，如果用不了，需要下载软件包。在Debian/Ubuntu环境中可以执行命令来下载</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>apt <span class="nb">install </span>exfat-fuse exfat-utils</code></pre></figure>
+
+<p>这样你可以访问并创建exFAT文件系统了，也就是说你可以使用<code class="language-plaintext highlighter-rouge">mkfs.exfat</code>进行格式化了。<br />
+这里<strong>不建议</strong>把大硬盘格式化成exFAT，因为会导致许多文件碎片。</p>
+<h1 id="cuda的设置">CUDA的设置</h1>
+<p>如果你安装了多个CUDA，你需要指定具体的CUDA版本，否则通过<code class="language-plaintext highlighter-rouge">nvcc -V</code>是没法看到CUDA信息的。配置起来很简单。</p>
+<h2 id="修改bash配置文件">修改BASH配置文件</h2>
+<p>如果你的Shell使用的是BASH（一般都是默认使用bash）则在你的用户文件夹下面可以看到<code class="language-plaintext highlighter-rouge">.bashrc</code>文件，用你最喜欢用的文本编辑器打开</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">nano .bashrc</code></pre></figure>
+
+<p>在最后添加以下字段</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+export CUDA_HOME=/usr/local/cuda
+</code></pre></div></div>
+<p>具体的路径需要你自己看一下，一般来说CUDA都会安装在/usr/local下，/usr/local/cuda通常是一个软链接。<br />
+保存并退出之后需要使用<code class="language-plaintext highlighter-rouge">source .bashrc</code>应用设置，或者重新进入Shell。</p>
+<h2 id="修改fish配置文件">修改Fish配置文件</h2>
+<p>如果你的Shell使用的是Fish，则在你的用户文件夹下面新建<code class="language-plaintext highlighter-rouge">.config/fish/config.fish</code>文件，并加入</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>set PATH /usr/local/cuda/bin $PATH
+set LD_LIBRARY_PATH /usr/local/cuda/lib64 $LD_LIBRARY_PATH
+set CUDA_HOME /usr/local/cuda
+</code></pre></div></div>
+<p>这几条命令和BASH配置文件中的意思是一样的。同样你需要应用设置，<code class="language-plaintext highlighter-rouge">source .config/fish/config.fish</code>，或者重新进入Shell。</p>
+<h2 id="在虚拟环境中venv修改对应配置文件">在虚拟环境中（venv）修改对应配置文件</h2>
+<p>事实上，虚拟环境的激活实际上是和<code class="language-plaintext highlighter-rouge">.bashrc</code>与<code class="language-plaintext highlighter-rouge">.config/fish/config.fish</code>一样的。在你通过virtualenv新建好环境之后进入到<code class="language-plaintext highlighter-rouge">bin</code>文件夹下。通过ls指令你可以看到一堆以<strong>activate</strong>开头的文件。其中，<code class="language-plaintext highlighter-rouge">activate</code>文件为Bash配置文件，<code class="language-plaintext highlighter-rouge">activate.fish</code>文件为Fish配置文件，<code class="language-plaintext highlighter-rouge">activate.ps1</code>文件为Powershell配置文件等等。如果想要在虚拟环境中使用CUDA，参照上述两个小节中的内容对Shell的对应配置文件进行修改即可。</p>
+<h1 id="共享文件服务samba-10的设置">共享文件服务Samba 1.0的设置</h1>
+<p>现在有些老的NAS服务器仍然使用<strong>不安全的</strong>Samba 1.0服务，但是现在的大多数操作系统已经默认关闭，所以我们必须要打开才能够访问共享服务器。<br />
+经过测试，Ubuntu 18.04及以上都是可以使用这个方法的。首先你需要确保安装了Samba服务，否则配置了半天也没啥用</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>apt <span class="nb">install </span>samba</code></pre></figure>
+
+<p>正常安装完毕之后应该可以通过命令<code class="language-plaintext highlighter-rouge">sudo systemctl status smbd.service</code>来查看Samba服务运行状态。<br />
+使用你最拿手的Linux文本编辑器，打开文件<code class="language-plaintext highlighter-rouge">/etc/samba/smb.conf</code>并找到<code class="language-plaintext highlighter-rouge">[global]</code>标签，在这标签下面输入</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ntlm auth = ntlmv1-permitted
+client min protocol = NT1
+</code></pre></div></div>
+<p>使其变成</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[global]
+...
+   ntlm auth = ntlmv1-permitted
+   client min protocol = NT1
+...
+</code></pre></div></div>
+<p>保存退出之后使用<code class="language-plaintext highlighter-rouge">sudo service smbd restart</code>重启服务即可。</p>
+<h1 id="rc-local与开机自启动的那点事">“rc-local”与开机自启动的那点事</h1>
+<p>自从Ubuntu在18.04之后默认关闭了开机自启动脚本服务，我就一直有开机自启动的需求。在抛弃了KDE neon、拥抱Ubuntu Kyrin之后，正式折腾了一遍<code class="language-plaintext highlighter-rouge">rc-local</code>服务…（其实之前也折腾过但是每次都忘了总结）</p>
+<h2 id="前期准备">前期准备</h2>
+<ul>
+  <li>要准备好进行开机自启动的文件们</li>
+  <li>Ubuntu 18.04及以上</li>
+</ul>
+
+<h2 id="开启自启动服务">开启自启动服务</h2>
+<p>其实Ubuntu并没有删除自启动服务，而是关闭了这项功能，因此只需要手动开启即可。使用你最擅长的文本编辑器编辑<code class="language-plaintext highlighter-rouge">rc-local.service</code>文件，并在最后加入三行：</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c"># open service file</span>
+<span class="nb">sudo </span>nano /lib/systemd/system/rc-local.service
+<span class="c"># insert</span>
+<span class="o">[</span>Install]
+<span class="nv">WantedBy</span><span class="o">=</span>multi-user.target
+<span class="nv">Alias</span><span class="o">=</span>rc-local.service</code></pre></figure>
+
+<p>将该文件复制或链接到系统服务文件夹</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo ln</span> <span class="nt">-s</span> /lib/systemd/system/rc-local.service /etc/systemd/system/rc-local.service</code></pre></figure>
+
+<h2 id="设置开机启动脚本">设置开机启动脚本</h2>
+<p>下一步根据shell脚本的语法规则修改<code class="language-plaintext highlighter-rouge">rc.local</code>文件即可。</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>nano /etc/rc.local</code></pre></figure>
+
+<p>注意一下，系统会在开机的某一个步骤时执行该脚本，使用的则是root用户登录的，建议这里的文件调用使用绝对路径。</p>
+
+<p>后续如果想看服务是否正常运行，可以通过<code class="language-plaintext highlighter-rouge">systemctl</code>或者<code class="language-plaintext highlighter-rouge">service</code>指令进行查看。<strong>注意</strong>：服务名称叫做<code class="language-plaintext highlighter-rouge">rc-local</code>，中间的是减号。</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>service rc-local status</code></pre></figure>
+
+<h1 id="安装字体">安装字体</h1>
+<p>Linux安装字体的方式有主要两种：</p>
+
+<ul>
+  <li>使用GUI的：可以直接双击字体文件进行安装</li>
+  <li>使用命令行安装：一键三连</li>
+</ul>
+
+<h2 id="gui方式">GUI方式</h2>
+<p>GUI方式很简单，双击字体文件，点击安装即可，如下图所示。</p>
+
+<p><img src="../../../assets/articles_imgs/0003-linux-notes/fonts-1.webp" alt="Fonts-1 GUI安装字体" /></p>
+
+<p>但是该安装方法会安装在对应的用户下，而且可能不支持一些字体文件扩展名，例如ttc，如下图所示。</p>
+
+<p><img src="../../../assets/articles_imgs/0003-linux-notes/fonts-2.webp" alt="Fonts-2 无法打开的情况" /></p>
+
+<p>你可以通过执行<code class="language-plaintext highlighter-rouge">fc-list</code>和检索命令来查看字体的安装位置，如下图所示。</p>
+
+<p><img src="../../../assets/articles_imgs/0003-linux-notes/fonts-3.webp" alt="Fonts-3 fc-list指令查看对应字体安装位置" /></p>
+
+<h2 id="命令行方式">命令行方式</h2>
+<p>为你的字体们创建一个全新的文件夹，该文件夹应该位于<code class="language-plaintext highlighter-rouge">/usr/share/fonts/</code>下：</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo mkdir</span> /usr/share/fonts/custom</code></pre></figure>
+
+<p>将你的字体全部复制到该文件夹下，然后执行“一键三连”即可。</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>mkfontscale
+<span class="nb">sudo </span>mkfontdir
+fc-cache</code></pre></figure>
+
+<p>如此安装的字体所有用户都可以使用。</p>
+<h1 id="anaconda--miniconda-多用户配置">Anaconda &amp; Miniconda 多用户配置</h1>
+<p>有些时候需要多用户的Anaconda或者Miniconda，但是网上的一些教程不太全，因此这里补全一下。</p>
+<h2 id="安装conda">安装conda</h2>
+<p>Anaconda和Miniconda的过程是一样的，因此这里只用Miniconda举例。</p>
+
+<p>使用root用户（或者sudo）执行脚本，在安装位置的时候选择一个公共的位置安装，例如<code class="language-plaintext highlighter-rouge">/opt/miniconda3</code></p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>sh miniconda3.sh</code></pre></figure>
+
+<h2 id="设置权限以及用户组">设置权限以及用户组</h2>
+<p>设置用户组的原因是为了：</p>
+
+<ul>
+  <li>防止其他用户直接在公共目录下的环境中建立虚拟环境</li>
+  <li>防止其他用户直接修改</li>
+  <li>防止其他程序修改</li>
+</ul>
+
+<p>新建一个用户组，并将对应用户、文件以及文件夹加入到这个组中</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>groupadd conda
+<span class="nb">sudo </span>usermod <span class="nt">-aG</span> conda <span class="o">[</span>username]
+<span class="nb">sudo chgrp</span> <span class="nt">-R</span> conda /opt/miniconda3
+<span class="nb">sudo chmod </span>770 <span class="nt">-R</span> /opt/miniconda3
+<span class="nb">sudo chmod </span>g+s /opt/anaconda
+<span class="nb">sudo chmod </span>g+s <span class="sb">`</span>find /opt/anaconda <span class="nt">-type</span> d<span class="sb">`</span>
+<span class="nb">sudo chmod </span>g-w /opt/miniconda3/envs</code></pre></figure>
+
+<p>g+s是在设置组继承，g-w是关闭读权限。</p>
+<h2 id="具体用户修改">具体用户修改</h2>
+<p>此时其他用户是无法新建虚拟环境的，原因是因为在<code class="language-plaintext highlighter-rouge">conda config</code>中输出的<code class="language-plaintext highlighter-rouge">envs_dirs</code>默认排在第一位的是安装目录下的envs文件夹，而这个文件夹刚刚被我们设置了无写权限，所以并不直接创建虚拟环境。因此仍然需要做一些设置。</p>
+
+<p>在<strong>对应的用户Shell环境下</strong>执行下面的语句进行初始化</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">source</span> /opt/miniconda3/bin/activate
+conda init
+conda config <span class="nt">--add</span> envs_dirs ~/.conda/envs</code></pre></figure>
+
+<p>我也写了一段脚本，可以把这段放到一个sh文件中。</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#!/bin/bash</span>
+<span class="c"># make sure you have added this user to conda group</span>
+<span class="k">if</span> <span class="o">[</span> <span class="nt">-n</span> <span class="s2">"</span><span class="nv">$1</span><span class="s2">"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nb">source</span> <span class="nv">$1</span>/bin/activate
+<span class="k">else
+    </span><span class="nb">source</span> /opt/miniconda3/bin/activate
+<span class="k">fi
+
+</span>conda init
+conda config <span class="nt">--add</span> envs_dirs ~/.conda/envs</code></pre></figure>
+
+<p>这个脚本允许输入一个含有安装地点的参数来设置。现在只需要执行这个脚本（假设命名为<code class="language-plaintext highlighter-rouge">initconda.sh</code>）即可</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo</span> <span class="nt">-u</span> <span class="o">[</span>user] bash initconda.sh</code></pre></figure>
+
+<p>这样就可以在有sudo权限的用户下统一设置了。</p>
+<h1 id="linux常用指令">Linux常用指令</h1>
+<p>该部分放一下常用的一些指令的讲解，结尾会有一个（我常用的）指令大列表。</p>
+<h2 id="定时执行at指令">定时执行——at指令</h2>
+<p>在某些应用场景下，定时执行某项任务是非常有必要的。at指令因此而来，它可以根据时刻到点执行指令。这里大多数都是直接借用<a href="http://c.biancheng.net/view/1090.html">别人写的</a>教程，感谢这位老哥</p>
+
+<h3 id="用前准备">用前准备</h3>
+<p>at指令需要安装，据我所知Ubuntu 16.04安装后并没有提供at服务，因此建议查看一下是否安装了，并且看一下服务是否正在运行。</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>apt <span class="nb">install </span>at
+<span class="nb">sudo </span>service atd status</code></pre></figure>
+
+<h3 id="运行指令">运行指令</h3>
+<p>at指令的操作很简单，输入<code class="language-plaintext highlighter-rouge">at [option] [time]</code>即可开始编辑一个at指令。看一下at的命令选项。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">选项</th>
+      <th>含义</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">-m</td>
+      <td>当 at 工作完成后，无论命令是否输出，都用 E-mail 通知执行 at 命令的用户。</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">-c <jobs></jobs></td>
+      <td>显示该 at 工作的实际内容。</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">-t <time></time></td>
+      <td>在指定时间提交工作并执行，时间格式为 [[CC]YY]MMDDhhmm。</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">-d</td>
+      <td>删除某个工作，需要提供相应的工作标识号（ID），同 atrm 命令的作用相同。</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">-l</td>
+      <td>列出当前所有等待运行的工作，和 atq 命令具有相同的额作用。</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">-f</td>
+      <td>脚本文件 	指定所要提交的脚本文件。</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>时间格式如下表</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">格式</th>
+      <th>用法</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">HH:MM</td>
+      <td>比如 04:00 AM。如果时间已过，则它会在第二天的同一时间执行。</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">Midnight<br />（midnight）</td>
+      <td>代表 12:00 AM（也就是 00:00）。</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">Noon<br />（noon）</td>
+      <td>代表 12:00 PM（相当于 12:00）。</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">Teatime<br />（teatime）</td>
+      <td>代表 4:00 PM（相当于 16:00）。</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">英文月名 日期 年份</td>
+      <td>比如 January 15 2018 表示 2018 年 1 月 15 号，年份可有可无。</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">MMDDYY<br />MM/DD/YY<br />MM.DD.YY</td>
+      <td>比如 011518 表示 2018 年 1 月 15 号。</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">now+时间</td>
+      <td>以 minutes、hours、days 或 weeks 为单位，例如 now+5 days 表示命令在 5 天之后的此时此刻执行。</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>我一般只用最后一个now+时间的格式，因为我所遇到的场景都是前面需要处理完成之后再执行，例如</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">at now+5 hours</code></pre></figure>
+
+<p>输完对应指令后按Ctrl+D（即输入EOF）后结束at任务编辑，并会在命令行上打印出啥时候执行该at任务。</p>
+
+<p>两个管理at任务的指令：atq和atrm。atq命令用于查看当前等待运行的任务，atrm命令后者用于删除指定的任务。</p>
+
+<h2 id="实时刷新watch指令">实时刷新——watch指令</h2>
+<p>watch指令用于实时刷新某些无法实时刷新的指令，例如nvidia-smi、netstat -ant。</p>
+
+<p>使用很简单：<code class="language-plaintext highlighter-rouge">watch [-n num] [-d] [-t]</code></p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">命令选项</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">-n num</td>
+      <td>每几秒运行一下程序，与–interval相同</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">-d</td>
+      <td>高亮显示变化的区域，与–differences相同</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">-t</td>
+      <td>关闭watch命令在顶部的时间间隔、命令、当前时间的输出，与–no-title相同</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="指令大列表">指令大列表</h2>
+<p>这是我自己排的操作类型，不一定准确~</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">指令</th>
+      <th style="text-align: center">类型</th>
+      <th>示例</th>
+      <th>解释</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">man</td>
+      <td style="text-align: center">帮助操作</td>
+      <td>man [instruction]</td>
+      <td>看指令的说明文档</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">ls</td>
+      <td style="text-align: center">文件夹操作</td>
+      <td>ls [dir]</td>
+      <td>查看对应目录中的内容，不写[dir]字段默认为当前目录</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">ll</td>
+      <td style="text-align: center">文件夹操作</td>
+      <td>ll [dir]</td>
+      <td>等同于ls -l</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">la</td>
+      <td style="text-align: center">文件夹操作</td>
+      <td>la [dir]</td>
+      <td>等同于ls -a</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">mv</td>
+      <td style="text-align: center">文件操作</td>
+      <td>mv (-T) [file or folder]</td>
+      <td>移动或重命名文件或文件夹</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">cp</td>
+      <td style="text-align: center">文件操作</td>
+      <td>cp (-T -r) [file or folder]</td>
+      <td>复制文件或文件夹，文件夹需要加-r</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">rm</td>
+      <td style="text-align: center">文件操作</td>
+      <td>rm (-rf) [fire or folder]</td>
+      <td>删除文件或文件夹，文件夹需要加-r，-f为强制删除</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">du</td>
+      <td style="text-align: center">文件夹操作</td>
+      <td>du -h [dir]</td>
+      <td>查看子文件夹下的文件大小</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">df</td>
+      <td style="text-align: center">磁盘操作</td>
+      <td>df -h</td>
+      <td>看磁盘占用</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">cd</td>
+      <td style="text-align: center">文件夹操作</td>
+      <td>cd [dir]</td>
+      <td>转到具体的文件夹内</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">cat</td>
+      <td style="text-align: center">文件操作</td>
+      <td>cat [file]</td>
+      <td>将文件打印在终端中</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">less</td>
+      <td style="text-align: center">文件操作</td>
+      <td>less [file]</td>
+      <td>查看文件，按q退出</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">vi<br />vim<br />nano</td>
+      <td style="text-align: center">文件操作</td>
+      <td>vi/vim/nano [file]</td>
+      <td>均为文本编辑器（vim一般需要安装）按照使用习惯使用</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">fdisk</td>
+      <td style="text-align: center">磁盘操作</td>
+      <td>fdisk -l</td>
+      <td>磁盘分区、查看磁盘信息等</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">mkfs</td>
+      <td style="text-align: center">文件系统操作</td>
+      <td>mkfs.xxxx [partition]</td>
+      <td>创建文件系统</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">sftp</td>
+      <td style="text-align: center">远程操作</td>
+      <td>sftp [user]@[host]</td>
+      <td>SFTP安全文件传送协议，通常使用22端口（与SSH一样）有一套自己的指令</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">free</td>
+      <td style="text-align: center">内存操作</td>
+      <td>free -m/-g/-h</td>
+      <td>查看内存使用情况，-m为以MB为单位，-g为以GB为单位，-h为自动选取单位</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">top</td>
+      <td style="text-align: center">任务操作</td>
+      <td>top</td>
+      <td>任务管理器，实时更新</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">ps</td>
+      <td style="text-align: center">任务操作</td>
+      <td>ps -A<br />ps aux</td>
+      <td>查看当前所有的任务，可以看到具体的执行的命令和参数，结合grep指令可以筛选</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">pwd</td>
+      <td style="text-align: center">文件夹操作</td>
+      <td>pwd</td>
+      <td>查看当前目录的完整路径</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">chmod<br />chown<br />chgrp</td>
+      <td style="text-align: center">文件操作</td>
+      <td>chmod a+x [file]<br />chown [owner] [file]<br />chgrp [group] [file]</td>
+      <td>修改文件权限；修改文件所有者；修改文件所有组</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">chsh</td>
+      <td style="text-align: center">用户操作</td>
+      <td>chsh -s [shell] [user]</td>
+      <td>修改用户默认Shell</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">mkdir</td>
+      <td style="text-align: center">文件夹操作</td>
+      <td>mkdir [dir]</td>
+      <td>创建新文件夹</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">passwd</td>
+      <td style="text-align: center">用户操作</td>
+      <td>passwd [user]</td>
+      <td>修改用户密码</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">shutdown</td>
+      <td style="text-align: center">系统操作</td>
+      <td>shutdown now</td>
+      <td>关机操作，-r为重启，加now为立即执行</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">at</td>
+      <td style="text-align: center">指令操作</td>
+      <td>at now+5 hours</td>
+      <td>定时执行某项任务</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">watch</td>
+      <td style="text-align: center">指令操作</td>
+      <td>watch nvidia-smi</td>
+      <td>重复执行某指令并自动刷新命令行</td>
+    </tr>
+  </tbody>
+</table>
+</div><section class="article__sharing d-print-none"></section><div class="d-print-none"><footer class="article__footer"><meta itemprop="dateModified" content="2021-06-30T00:55:42+00:00"><!-- start custom article footer snippet -->
+
+<!-- end custom article footer snippet -->
+<div class="article__subscribe"><div class="subscribe"><i class="fas fa-rss"></i> <a type="application/rss+xml" href="/"></a></div>
+</div><div class="article__license"></div></footer>
+<div class="article__section-navigator clearfix"><div class="previous"><span></span><a href="/2020/10/26/android-notes.html">Android notes is on! / Android学习笔记已上线！</a></div><div class="next"><span></span><a href="/2021/06/30/vscode.html">VSCode: the Magic Code Editor / 神奇代码编辑器——VSCode</a></div></div></div>
+
+</div>
+
+<script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    $(function() {
+      var $this ,$scroll;
+      var $articleContent = $('.js-article-content');
+      var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+      var scroll = hasSidebar ? '.js-page-main' : 'html, body';
+      $scroll = $(scroll);
+
+      $articleContent.find('.highlight').each(function() {
+        $this = $(this);
+        $this.attr('data-lang', $this.find('code').attr('data-lang'));
+      });
+      $articleContent.find('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]').each(function() {
+        $this = $(this);
+        $this.append($('<a class="anchor d-print-none" aria-hidden="true"></a>').html('<i class="fas fa-anchor"></i>'));
+      });
+      $articleContent.on('click', '.anchor', function() {
+        $scroll.scrollToAnchor('#' + $(this).parent().attr('id'), 400);
+      });
+    });
+  });
+})();
+</script>
+</div><section class="page__comments d-print-none"></section></article><!-- start custom main bottom snippet -->
+
+<!-- end custom main bottom snippet -->
+</div>
+            </div></div></div><div class="page__footer d-print-none">
+<footer class="footer py-4 js-page-footer">
+  <div class="main"><div itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ZeroGoYoosee"><meta itemprop="url" content="https://www.z7workbench.xin/"><meta itemprop="description" content="A very weak programmer, Hearthstone/StarCraft II/Overwatch player, fan of Marvel's Ghost-Spider"><div class="footer__author-links"><div class="author-links">
+  <ul class="menu menu--nowrap menu--inline"><link itemprop="url" href="https://www.z7workbench.xin/"><li title="">
+        <a class="button button--circle weibo-button" itemprop="sameAs" href="https://weibo.com/5885373273" target="_blank">
+          <div class="icon"><svg fill="#000000" width="24px" height="24px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+	<path d="M769.226164 496.610234c-14.420098-4.330228-24.309277-7.266877-16.746482-26.214823 16.350218-41.133578 18.046881-76.626289 0.307181-101.939024-33.242099-47.500415-124.194284-44.928286-228.44638-1.280945 0-0.056317-32.73525 14.323848-24.371737-11.64523 16.042013-51.54906 13.626547-94.739726-11.332929-119.662341-56.566349-56.601163-206.976479 2.134908-335.954595 131.078209-96.594075 96.61353-152.681222 198.989775-152.681222 287.52035 0 169.337597 217.152361 272.292366 429.593589 272.292366 278.498445 0 463.752111-161.808592 463.752111-290.273715C893.345701 558.867622 827.968378 514.820945 769.226164 496.610234zM430.163922 866.063936c-169.51781 16.728051-315.851649-59.899262-326.864086-171.202185-11.010389-111.275277 117.530505-215.061482 287.031932-231.823323 169.537265-16.761841 315.876224 59.866496 326.86511 171.119247C728.190884 745.495411 599.705282 849.291856 430.163922 866.063936z" />
+	<path d="M954.16753 186.714824c-67.256246-74.565105-166.457264-102.990607-258.020739-83.522502l-0.037886 0c-21.188318 4.535015-34.695065 25.37929-30.159026 46.527675 4.516584 21.166816 25.352668 34.691993 46.54201 30.174385 65.139769-13.832358 135.634727 6.400627 183.442323 59.368863 47.765615 52.96414 60.740938 125.206957 40.282686 188.537431l0.011263 0.012287c-6.666851 20.629249 4.617954 42.698153 25.271777 49.366027 20.570885 6.662755 42.687913-4.607714 49.362955-25.188838 0-0.037886 0-0.116729 0.011263-0.150519C1039.577146 362.756133 1021.443231 261.206205 954.16753 186.714824" />
+	<path d="M850.886125 279.919669c-32.732179-36.315956-81.068126-50.108381-125.685136-40.621609-18.234261 3.885839-29.856965 21.833398-25.946551 40.085067 3.89915 18.173849 21.833398 29.851845 40.024654 25.893307l0 0.037886c21.809848-4.610786 45.459709 2.113405 61.461789 19.83365 16.018463 17.757107 20.323092 41.949655 13.45043 63.178931l0.035838 0c-5.715614 17.717174 3.983113 36.770584 21.717694 42.511796 17.7397 5.677728 36.76956-3.992328 42.493365-21.756603C892.458972 365.691759 883.686907 316.228458 850.886125 279.919669" />
+	<path d="M447.103928 548.691741c-80.666743-20.985579-171.84317 19.215193-206.880229 90.291746-35.685212 72.492657-1.180599 152.963828 80.321676 179.268757 84.41947 27.224424 183.926645-14.492797 218.521364-92.744074C573.187374 649.021137 530.586496 570.268131 447.103928 548.691741zM385.506979 733.819463c-16.398343 26.160554-51.51015 37.623523-77.954335 25.54824-26.066352-11.868448-33.760211-42.248645-17.360844-67.757975 16.197652-25.400793 50.129884-36.716316 76.378497-25.711046C393.129162 677.216253 401.60838 707.401901 385.506979 733.819463zM439.522702 664.493841c-5.929616 10.131852-19.03498 15.010909-29.304039 10.785123-10.096014-4.15411-13.261002-15.495231-7.522862-25.454038 5.906066-9.908634 18.500485-14.747758 28.572948-10.750309C441.502995 642.817105 445.180975 654.283146 439.522702 664.493841z" />
+</svg>
+</div>
+        </a>
+      </li><li title="">
+        <a class="button button--circle zhihu-button" itemprop="sameAs" href="https://www.zhihu.com/people/qz777zp" target="_blank">
+          <div class="icon"><svg fill="#000000" width="24px" height="24px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M351.791182 562.469462l192.945407 0c0-45.367257-21.3871-71.939449-21.3871-71.939449L355.897709 490.530013c3.977591-82.182744 7.541767-187.659007 8.816806-226.835262l159.282726 0c0 0-0.86367-67.402109-18.578124-67.402109s-279.979646 0-279.979646 0 16.850783-88.141456 39.318494-127.053698c0 0-83.60514-4.510734-112.121614 106.962104S81.344656 355.077018 76.80834 367.390461c-4.536316 12.313443 24.62791 5.832845 36.941354 0 12.313443-5.832845 68.050885-25.924439 84.252893-103.69571l86.570681 0c1.165546 49.28652 4.596691 200.335724 3.515057 226.835262L109.86113 490.530013c-25.275663 18.147312-33.701566 71.939449-33.701566 71.939449L279.868105 562.469462c-8.497535 56.255235-23.417339 128.763642-44.275389 167.210279-33.05279 60.921511-50.55235 116.65793-169.802314 212.576513 0 0-19.442818 14.257725 40.829917 9.073656 60.273758-5.185093 117.305683-20.739347 156.840094-99.807147 20.553105-41.107233 41.805128-93.250824 58.386782-146.138358l-0.055259 0.185218 167.855986 193.263655c0 0 22.035876-51.847855 5.832845-108.880803L371.045711 650.610918l-42.1244 31.157627-0.045025 0.151449c11.69946-41.020252 20.11206-81.5749 22.726607-116.858498C351.665315 564.212152 351.72876 563.345412 351.791182 562.469462z" p-id="907"></path><path d="M584.918753 182.033893l0 668.840094 70.318532 0 28.807093 80.512708 121.875768-80.512708 153.600307 0L959.520453 182.033893 584.918753 182.033893zM887.150192 778.934538l-79.837326 0-99.578949 65.782216-23.537066-65.782216-24.855084 0L659.341766 256.673847l227.807403 0L887.149169 778.934538z" />
+</svg>
+</div>
+        </a>
+      </li><li title="">
+        <a class="button button--circle github-button" itemprop="sameAs" href="https://github.com/z7workbench" target="_blank">
+          <div class="icon"><svg fill="#000000" width="24px" height="24px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path class="svgpath" data-index="path_0" fill="#272636" d="M0 525.2c0 223.6 143.3 413.7 343 483.5 26.9 6.8 22.8-12.4 22.8-25.4l0-88.7c-155.3 18.2-161.5-84.6-172-101.7-21.1-36-70.8-45.2-56-62.3 35.4-18.2 71.4 4.6 113.1 66.3 30.2 44.7 89.1 37.2 119 29.7 6.5-26.9 20.5-50.9 39.7-69.6C248.8 728.2 181.7 630 181.7 513.2c0-56.6 18.7-108.7 55.3-150.7-23.3-69.3 2.2-128.5 5.6-137.3 66.5-6 135.5 47.6 140.9 51.8 37.8-10.2 80.9-15.6 129.1-15.6 48.5 0 91.8 5.6 129.8 15.9 12.9-9.8 77-55.8 138.8-50.2 3.3 8.8 28.2 66.7 6.3 135 37.1 42.1 56 94.6 56 151.4 0 117-67.5 215.3-228.8 243.7 26.9 26.6 43.6 63.4 43.6 104.2l0 128.8c0.9 10.3 0 20.5 17.2 20.5C878.1 942.4 1024 750.9 1024 525.3c0-282.9-229.3-512-512-512C229.1 13.2 0 242.3 0 525.2L0 525.2z" />
+</svg>
+</div>
+        </a>
+      </li></ul>
+</div>
+</div>
+    </div><div class="site-info mt-2">
+      <div>© ZeroGo's Workbench🔨 / 小Z的工作台 ,
+        Powered by <a title="Jekyll is a simple, blog-aware, static site generator." href="http://jekyllrb.com/">Jekyll</a> & <a
+        title="TeXt is a super customizable Jekyll theme." href="https://github.com/kitian616/jekyll-TeXt-theme">TeXt Theme</a>.
+      </div>
+    </div>
+  </div>
+</footer>
+</div></div>
+    </div><script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $body = $('body'), $window = $(window);
+    var $pageRoot = $('.js-page-root'), $pageMain = $('.js-page-main');
+    var activeCount = 0;
+    function modal(options) {
+      var $root = this, visible, onChange, hideWhenWindowScroll = false;
+      var scrollTop;
+      function setOptions(options) {
+        var _options = options || {};
+        visible = _options.initialVisible === undefined ? false : show;
+        onChange = _options.onChange;
+        hideWhenWindowScroll = _options.hideWhenWindowScroll;
+      }
+      function init() {
+        setState(visible);
+      }
+      function setState(isShow) {
+        if (isShow === visible) {
+          return;
+        }
+        visible = isShow;
+        if (visible) {
+          activeCount++;
+          scrollTop = $(window).scrollTop() || $pageMain.scrollTop();
+          $root.addClass('modal--show');
+          $pageMain.scrollTop(scrollTop);
+          activeCount === 1 && ($pageRoot.addClass('show-modal'), $body.addClass('of-hidden'));
+          hideWhenWindowScroll && window.hasEvent('touchstart') && $window.on('scroll', hide);
+          $window.on('keyup', handleKeyup);
+        } else {
+          activeCount > 0 && activeCount--;
+          $root.removeClass('modal--show');
+          $window.scrollTop(scrollTop);
+          activeCount === 0 && ($pageRoot.removeClass('show-modal'), $body.removeClass('of-hidden'));
+          hideWhenWindowScroll && window.hasEvent('touchstart') && $window.off('scroll', hide);
+          $window.off('keyup', handleKeyup);
+        }
+        onChange && onChange(visible);
+      }
+      function show() {
+        setState(true);
+      }
+      function hide() {
+        setState(false);
+      }
+      function handleKeyup(e) {
+        // Char Code: 27  ESC
+        if (e.which ===  27) {
+          hide();
+        }
+      }
+      setOptions(options);
+      init();
+      return {
+        show: show,
+        hide: hide,
+        $el: $root
+      };
+    }
+    $.fn.modal = modal;
+  });
+})();
+</script><div class="modal modal--overflow page__search-modal d-print-none js-page-search-modal"><script>
+(function () {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    // search panel
+    var search = (window.search || (window.search = {}));
+    var useDefaultSearchBox = window.useDefaultSearchBox === undefined ?
+      true : window.useDefaultSearchBox ;
+
+    var $searchModal = $('.js-page-search-modal');
+    var $searchToggle = $('.js-search-toggle');
+    var searchModal = $searchModal.modal({ onChange: handleModalChange, hideWhenWindowScroll: true });
+    var modalVisible = false;
+    search.searchModal = searchModal;
+
+    var $searchBox = null;
+    var $searchInput = null;
+    var $searchClear = null;
+
+    function getModalVisible() {
+      return modalVisible;
+    }
+    search.getModalVisible = getModalVisible;
+
+    function handleModalChange(visible) {
+      modalVisible = visible;
+      if (visible) {
+        search.onShow && search.onShow();
+        useDefaultSearchBox && $searchInput[0] && $searchInput[0].focus();
+      } else {
+        search.onShow && search.onHide();
+        useDefaultSearchBox && $searchInput[0] && $searchInput[0].blur();
+        setTimeout(function() {
+          useDefaultSearchBox && ($searchInput.val(''), $searchBox.removeClass('not-empty'));
+          search.clear && search.clear();
+          window.pageAsideAffix && window.pageAsideAffix.refresh();
+        }, 400);
+      }
+    }
+
+    $searchToggle.on('click', function() {
+      modalVisible ? searchModal.hide() : searchModal.show();
+    });
+    // Char Code: 83  S, 191 /
+    $(window).on('keyup', function(e) {
+      if (!modalVisible && !window.isFormElement(e.target || e.srcElement) && (e.which === 83 || e.which === 191)) {
+        modalVisible || searchModal.show();
+      }
+    });
+
+    if (useDefaultSearchBox) {
+      $searchBox = $('.js-search-box');
+      $searchInput = $searchBox.children('input');
+      $searchClear = $searchBox.children('.js-icon-clear');
+      search.getSearchInput = function() {
+        return $searchInput.get(0);
+      };
+      search.getVal = function() {
+        return $searchInput.val();
+      };
+      search.setVal = function(val) {
+        $searchInput.val(val);
+      };
+
+      $searchInput.on('focus', function() {
+        $(this).addClass('focus');
+      });
+      $searchInput.on('blur', function() {
+        $(this).removeClass('focus');
+      });
+      $searchInput.on('input', window.throttle(function() {
+        var val = $(this).val();
+        if (val === '' || typeof val !== 'string') {
+          search.clear && search.clear();
+        } else {
+          $searchBox.addClass('not-empty');
+          search.onInputNotEmpty && search.onInputNotEmpty(val);
+        }
+      }, 400));
+      $searchClear.on('click', function() {
+        $searchInput.val(''); $searchBox.removeClass('not-empty');
+        search.clear && search.clear();
+      });
+    }
+  });
+})();
+</script><div class="search search--dark">
+  <div class="main">
+    <div class="search__header"></div>
+    <div class="search-bar">
+      <div class="search-box js-search-box">
+        <div class="search-box__icon-search"><i class="fas fa-search"></i></div>
+        <input type="text" />
+        <div class="search-box__icon-clear js-icon-clear">
+          <a><i class="fas fa-times"></i></a>
+        </div>
+      </div>
+      <button class="button button--theme-dark button--pill search__cancel js-search-toggle">
+        </button>
+    </div>
+    <div class="search-result js-search-result"></div>
+  </div>
+</div>
+<script>var SOURCES = window.TEXT_VARIABLES.sources;
+var PAHTS = window.TEXT_VARIABLES.paths;
+window.Lazyload.js([SOURCES.jquery, PAHTS.search_js], function() {
+  var search = (window.search || (window.search = {}));
+  var searchData = window.TEXT_SEARCH_DATA || {};
+
+  function memorize(f) {
+    var cache = {};
+    return function () {
+      var key = Array.prototype.join.call(arguments, ',');
+      if (key in cache) return cache[key];
+      else return cache[key] = f.apply(this, arguments);
+    };
+  }
+
+  /// search
+  function searchByQuery(query) {
+    var i, j, key, keys, cur, _title, result = {};
+    keys = Object.keys(searchData);
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i];
+      for (j = 0; j < searchData[key].length; j++) {
+        cur = searchData[key][j], _title = cur.title;
+        if ((result[key] === undefined || result[key] && result[key].length < 4 )
+          && _title.toLowerCase().indexOf(query.toLowerCase()) >= 0) {
+          if (result[key] === undefined) {
+            result[key] = [];
+          }
+          result[key].push(cur);
+        }
+      }
+    }
+    return result;
+  }
+
+  var renderHeader = memorize(function(header) {
+    return $('<p class="search-result__header">' + header + '</p>');
+  });
+
+  var renderItem = function(index, title, url) {
+    return $('<li class="search-result__item" data-index="' + index + '"><a class="button" href="' + url + '">' + title + '</a></li>');
+  };
+
+  function render(data) {
+    if (!data) { return null; }
+    var $root = $('<ul></ul>'), i, j, key, keys, cur, itemIndex = 0;
+    keys = Object.keys(data);
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i];
+      $root.append(renderHeader(key));
+      for (j = 0; j < data[key].length; j++) {
+        cur = data[key][j];
+        $root.append(renderItem(itemIndex++, cur.title, cur.url));
+      }
+    }
+    return $root;
+  }
+
+  // search box
+  var $result = $('.js-search-result'), $resultItems;
+  var lastActiveIndex, activeIndex;
+
+  function clear() {
+    $result.html(null);
+    $resultItems = $('.search-result__item'); activeIndex = 0;
+  }
+  function onInputNotEmpty(val) {
+    $result.html(render(searchByQuery(val)));
+    $resultItems = $('.search-result__item'); activeIndex = 0;
+    $resultItems.eq(0).addClass('active');
+  }
+
+  search.clear = clear;
+  search.onInputNotEmpty = onInputNotEmpty;
+
+  function updateResultItems() {
+    lastActiveIndex >= 0 && $resultItems.eq(lastActiveIndex).removeClass('active');
+    activeIndex >= 0 && $resultItems.eq(activeIndex).addClass('active');
+  }
+
+  function moveActiveIndex(direction) {
+    var itemsCount = $resultItems ? $resultItems.length : 0;
+    if (itemsCount > 1) {
+      lastActiveIndex = activeIndex;
+      if (direction === 'up') {
+        activeIndex = (activeIndex - 1 + itemsCount) % itemsCount;
+      } else if (direction === 'down') {
+        activeIndex = (activeIndex + 1 + itemsCount) % itemsCount;
+      }
+      updateResultItems();
+    }
+  }
+
+  // Char Code: 13  Enter, 37  ⬅, 38  ⬆, 39  ➡, 40  ⬇
+  $(window).on('keyup', function(e) {
+    var modalVisible = search.getModalVisible && search.getModalVisible();
+    if (modalVisible) {
+      if (e.which === 38) {
+        modalVisible && moveActiveIndex('up');
+      } else if (e.which === 40) {
+        modalVisible && moveActiveIndex('down');
+      } else if (e.which === 13) {
+        modalVisible && $resultItems && activeIndex >= 0 && $resultItems.eq(activeIndex).children('a')[0].click();
+      }
+    }
+  });
+
+  $result.on('mouseover', '.search-result__item > a', function() {
+    var itemIndex = $(this).parent().data('index');
+    itemIndex >= 0 && (lastActiveIndex = activeIndex, activeIndex = itemIndex, updateResultItems());
+  });
+});
+</script>
+</div></div>
+
+
+<script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function scrollToAnchor(anchor, duration, callback) {
+      var $root = this;
+      $root.animate({ scrollTop: $(anchor).position().top }, duration, function() {
+        window.history.replaceState(null, '', window.location.href.split('#')[0] + anchor);
+        callback && callback();
+      });
+    }
+    $.fn.scrollToAnchor = scrollToAnchor;
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function affix(options) {
+      var $root = this, $window = $(window), $scrollTarget, $scroll,
+        offsetBottom = 0, scrollTarget = window, scroll = window.document, disabled = false, isOverallScroller = true,
+        rootTop, rootLeft, rootHeight, scrollBottom, rootBottomTop,
+        hasInit = false, curState;
+
+      function setOptions(options) {
+        var _options = options || {};
+        _options.offsetBottom && (offsetBottom = _options.offsetBottom);
+        _options.scrollTarget && (scrollTarget = _options.scrollTarget);
+        _options.scroll && (scroll = _options.scroll);
+        _options.disabled !== undefined && (disabled = _options.disabled);
+        $scrollTarget = $(scrollTarget);
+        isOverallScroller = window.isOverallScroller($scrollTarget[0]);
+        $scroll = $(scroll);
+      }
+      function preCalc() {
+        top();
+        rootHeight = $root.outerHeight();
+        rootTop = $root.offset().top + (isOverallScroller ? 0 :  $scrollTarget.scrollTop());
+        rootLeft = $root.offset().left;
+      }
+      function calc(needPreCalc) {
+        needPreCalc && preCalc();
+        scrollBottom = $scroll.outerHeight() - offsetBottom - rootHeight;
+        rootBottomTop = scrollBottom - rootTop;
+      }
+      function top() {
+        if (curState !== 'top') {
+          $root.removeClass('fixed').css({
+            left: 0,
+            top: 0
+          });
+          curState = 'top';
+        }
+      }
+      function fixed() {
+        if (curState !== 'fixed') {
+          $root.addClass('fixed').css({
+            left: rootLeft + 'px',
+            top: 0
+          });
+          curState = 'fixed';
+        }
+      }
+      function bottom() {
+        if (curState !== 'bottom') {
+          $root.removeClass('fixed').css({
+            left: 0,
+            top: rootBottomTop + 'px'
+          });
+          curState = 'bottom';
+        }
+      }
+      function setState() {
+        var scrollTop = $scrollTarget.scrollTop();
+        if (scrollTop >= rootTop && scrollTop <= scrollBottom) {
+          fixed();
+        } else if (scrollTop < rootTop) {
+          top();
+        } else {
+          bottom();
+        }
+      }
+      function init() {
+        if(!hasInit) {
+          var interval, timeout;
+          calc(true); setState();
+          // run calc every 100 millisecond
+          interval = setInterval(function() {
+            calc();
+          }, 100);
+          timeout = setTimeout(function() {
+            clearInterval(interval);
+          }, 45000);
+          window.pageLoad.then(function() {
+            setTimeout(function() {
+              clearInterval(interval);
+              clearTimeout(timeout);
+            }, 3000);
+          });
+          $scrollTarget.on('scroll', function() {
+            disabled || setState();
+          });
+          $window.on('resize', function() {
+            disabled || (calc(true), setState());
+          });
+          hasInit = true;
+        }
+      }
+
+      setOptions(options);
+      if (!disabled) {
+        init();
+      }
+      $window.on('resize', window.throttle(function() {
+        init();
+      }, 200));
+      return {
+        setOptions: setOptions,
+        refresh: function() {
+          calc(true, { animation: false }); setState();
+        }
+      };
+    }
+    $.fn.affix = affix;
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function toc(options) {
+      var $root = this, $window = $(window), $scrollTarget, $scroller, $tocUl = $('<ul class="toc toc--ellipsis"></ul>'), $tocLi, $headings, $activeLast, $activeCur,
+        selectors = 'h1,h2,h3', container = 'body', scrollTarget = window, scroller = 'html, body', disabled = false,
+        headingsPos, scrolling = false, hasRendered = false, hasInit = false;
+
+      function setOptions(options) {
+        var _options = options || {};
+        _options.selectors && (selectors = _options.selectors);
+        _options.container && (container = _options.container);
+        _options.scrollTarget && (scrollTarget = _options.scrollTarget);
+        _options.scroller && (scroller = _options.scroller);
+        _options.disabled !== undefined && (disabled = _options.disabled);
+        $headings = $(container).find(selectors).filter('[id]');
+        $scrollTarget = $(scrollTarget);
+        $scroller = $(scroller);
+      }
+      function calc() {
+        headingsPos = [];
+        $headings.each(function() {
+          headingsPos.push(Math.floor($(this).position().top));
+        });
+      }
+      function setState(element, disabled) {
+        var scrollTop = $scrollTarget.scrollTop(), i;
+        if (disabled || !headingsPos || headingsPos.length < 1) { return; }
+        if (element) {
+          $activeCur = element;
+        } else {
+          for (i = 0; i < headingsPos.length; i++) {
+            if (scrollTop >= headingsPos[i]) {
+              $activeCur = $tocLi.eq(i);
+            } else {
+              $activeCur || ($activeCur = $tocLi.eq(i));
+              break;
+            }
+          }
+        }
+        $activeLast && $activeLast.removeClass('active');
+        ($activeLast = $activeCur).addClass('active');
+      }
+      function render() {
+        if(!hasRendered) {
+          $root.append($tocUl);
+          $headings.each(function() {
+            var $this = $(this);
+            $tocUl.append($('<li></li>').addClass('toc-' + $this.prop('tagName').toLowerCase())
+              .append($('<a></a>').text($this.text()).attr('href', '#' + $this.prop('id'))));
+          });
+          $tocLi = $tocUl.children('li');
+          $tocUl.on('click', 'a', function(e) {
+            e.preventDefault();
+            var $this = $(this);
+            scrolling = true;
+            setState($this.parent());
+            $scroller.scrollToAnchor($this.attr('href'), 400, function() {
+              scrolling = false;
+            });
+          });
+        }
+        hasRendered = true;
+      }
+      function init() {
+        var interval, timeout;
+        if(!hasInit) {
+          render(); calc(); setState(null, scrolling);
+          // run calc every 100 millisecond
+          interval = setInterval(function() {
+            calc();
+          }, 100);
+          timeout = setTimeout(function() {
+            clearInterval(interval);
+          }, 45000);
+          window.pageLoad.then(function() {
+            setTimeout(function() {
+              clearInterval(interval);
+              clearTimeout(timeout);
+            }, 3000);
+          });
+          $scrollTarget.on('scroll', function() {
+            disabled || setState(null, scrolling);
+          });
+          $window.on('resize', window.throttle(function() {
+            if (!disabled) {
+              render(); calc(); setState(null, scrolling);
+            }
+          }, 100));
+        }
+        hasInit = true;
+      }
+
+      setOptions(options);
+      if (!disabled) {
+        init();
+      }
+      $window.on('resize', window.throttle(function() {
+        init();
+      }, 200));
+      return {
+        setOptions: setOptions
+      };
+    }
+    $.fn.toc = toc;
+  });
+})();
+/*(function () {
+
+})();*/
+</script><script>
+  /* toc must before affix, since affix need to konw toc' height. */(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  var TOC_SELECTOR = window.TEXT_VARIABLES.site.toc.selectors;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $window = $(window);
+    var $articleContent = $('.js-article-content');
+    var $tocRoot = $('.js-toc-root'), $col2 = $('.js-col-aside');
+    var toc;
+    var tocDisabled = false;
+    var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+    var hasToc = $articleContent.find(TOC_SELECTOR).length > 0;
+
+    function disabled() {
+      return $col2.css('display') === 'none' || !hasToc;
+    }
+
+    tocDisabled = disabled();
+
+    toc = $tocRoot.toc({
+      selectors: TOC_SELECTOR,
+      container: $articleContent,
+      scrollTarget: hasSidebar ? '.js-page-main' : null,
+      scroller: hasSidebar ? '.js-page-main' : null,
+      disabled: tocDisabled
+    });
+
+    $window.on('resize', window.throttle(function() {
+      tocDisabled = disabled();
+      toc && toc.setOptions({
+        disabled: tocDisabled
+      });
+    }, 100));
+
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $window = $(window), $pageFooter = $('.js-page-footer');
+    var $pageAside = $('.js-page-aside');
+    var affix;
+    var tocDisabled = false;
+    var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+
+    affix = $pageAside.affix({
+      offsetBottom: $pageFooter.outerHeight(),
+      scrollTarget: hasSidebar ? '.js-page-main' : null,
+      scroller: hasSidebar ? '.js-page-main' : null,
+      scroll: hasSidebar ? $('.js-page-main').children() : null,
+      disabled: tocDisabled
+    });
+
+    $window.on('resize', window.throttle(function() {
+      affix && affix.setOptions({
+        disabled: tocDisabled
+      });
+    }, 100));
+
+    window.pageAsideAffix = affix;
+  });
+})();
+</script><script>
+  window.Lazyload.js(['https://cdn.bootcss.com/jquery/3.1.1/jquery.min.js', 'https://cdn.bootcss.com/Chart.js/2.7.2/Chart.bundle.min.js'], function() {
+    var $canvas = null, $this = null, _ctx = null, _text = '';
+    $('.language-chart').each(function(){
+      $this = $(this);
+      $canvas = $('<canvas></canvas>');
+      _text = $this.text();
+      $this.text('').append($canvas);
+      _ctx = $canvas.get(0).getContext('2d');
+      (_ctx && _text) && (new Chart(_ctx, JSON.parse(_text)) && $this.attr('data-processed', true));
+    });
+  });
+</script>
+<script type="text/x-mathjax-config">
+	var _config = { tex2jax: {
+		inlineMath: [['$','$'], ['\\(','\\)']]
+	}};_config.TeX = { equationNumbers: { autoNumber: "all" } };MathJax.Hub.Config(_config);
+</script>
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+<script>
+  window.Lazyload.js('https://cdn.bootcss.com/mermaid/8.0.0-rc.8/mermaid.min.js', function() {
+    mermaid.initialize({
+      startOnLoad: true
+    });
+    mermaid.init(undefined, '.language-mermaid');
+  });
+</script>
+
+    </div>
+    <script>(function () {
+  var $root = document.getElementsByClassName('root')[0];
+  if (window.hasEvent('touchstart')) {
+    $root.dataset.isTouch = true;
+    document.addEventListener('touchstart', function(){}, false);
+  }
+})();
+</script>
+  </body>
+</html>
+

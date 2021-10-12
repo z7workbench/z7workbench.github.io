@@ -1,0 +1,1352 @@
+<!DOCTYPE html><html lang="cn">
+  <head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"><title>全新的可持续化数据方式：DataStore - ZeroGo's Workbench🔨 / 小Z的工作台</title>
+
+<meta name="description" content="ZeroGo's Workbench🔨
+">
+<link rel="canonical" href="https://www.z7workbench.xin//android/datastore"><link rel="alternate" type="application/rss+xml" title="ZeroGo's Workbench🔨 / 小Z的工作台" href="/"><link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png"><link rel="manifest" href="/assets/site.webmanifest"><link rel="mask-icon" href="/assets/safari-pinned-tab.svg" color="#5bbad5">
+<meta name="msapplication-TileColor" content="#8686ff">
+<meta name="theme-color" content="#ffffff"><link rel="stylesheet" href="/assets/css/main.css"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" ><!-- start custom head snippets -->
+
+<!-- end custom head snippets -->
+<script>(function() {
+  window.isArray = function(val) {
+    return Object.prototype.toString.call(val) === '[object Array]';
+  };
+  window.isString = function(val) {
+    return typeof val === 'string';
+  };
+
+  window.hasEvent = function(event) {
+    return 'on'.concat(event) in window.document;
+  };
+
+  window.isOverallScroller = function(node) {
+    return node === document.documentElement || node === document.body || node === window;
+  };
+
+  window.isFormElement = function(node) {
+    var tagName = node.tagName;
+    return tagName === 'INPUT' || tagName === 'SELECT' || tagName === 'TEXTAREA';
+  };
+
+  window.pageLoad = (function () {
+    var loaded = false, cbs = [];
+    window.addEventListener('load', function () {
+      var i;
+      loaded = true;
+      if (cbs.length > 0) {
+        for (i = 0; i < cbs.length; i++) {
+          cbs[i]();
+        }
+      }
+    });
+    return {
+      then: function(cb) {
+        cb && (loaded ? cb() : (cbs.push(cb)));
+      }
+    };
+  })();
+})();
+(function() {
+  window.throttle = function(func, wait) {
+    var args, result, thisArg, timeoutId, lastCalled = 0;
+
+    function trailingCall() {
+      lastCalled = new Date;
+      timeoutId = null;
+      result = func.apply(thisArg, args);
+    }
+    return function() {
+      var now = new Date,
+        remaining = wait - (now - lastCalled);
+
+      args = arguments;
+      thisArg = this;
+
+      if (remaining <= 0) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+        lastCalled = now;
+        result = func.apply(thisArg, args);
+      } else if (!timeoutId) {
+        timeoutId = setTimeout(trailingCall, remaining);
+      }
+      return result;
+    };
+  };
+})();
+(function() {
+  var Set = (function() {
+    var add = function(item) {
+      var i, data = this._data;
+      for (i = 0; i < data.length; i++) {
+        if (data[i] === item) {
+          return;
+        }
+      }
+      this.size ++;
+      data.push(item);
+      return data;
+    };
+
+    var Set = function(data) {
+      this.size = 0;
+      this._data = [];
+      var i;
+      if (data.length > 0) {
+        for (i = 0; i < data.length; i++) {
+          add.call(this, data[i]);
+        }
+      }
+    };
+    Set.prototype.add = add;
+    Set.prototype.get = function(index) { return this._data[index]; };
+    Set.prototype.has = function(item) {
+      var i, data = this._data;
+      for (i = 0; i < data.length; i++) {
+        if (this.get(i) === item) {
+          return true;
+        }
+      }
+      return false;
+    };
+    Set.prototype.is = function(map) {
+      if (map._data.length !== this._data.length) { return false; }
+      var i, j, flag, tData = this._data, mData = map._data;
+      for (i = 0; i < tData.length; i++) {
+        for (flag = false, j = 0; j < mData.length; j++) {
+          if (tData[i] === mData[j]) {
+            flag = true;
+            break;
+          }
+        }
+        if (!flag) { return false; }
+      }
+      return true;
+    };
+    Set.prototype.values = function() {
+      return this._data;
+    };
+    return Set;
+  })();
+
+  window.Lazyload = (function(doc) {
+    var queue = {js: [], css: []}, sources = {js: {}, css: {}}, context = this;
+    var createNode = function(name, attrs) {
+      var node = doc.createElement(name), attr;
+      for (attr in attrs) {
+        if (attrs.hasOwnProperty(attr)) {
+          node.setAttribute(attr, attrs[attr]);
+        }
+      }
+      return node;
+    };
+    var end = function(type, url) {
+      var s, q, qi, cbs, i, j, cur, val, flag;
+      if (type === 'js' || type ==='css') {
+        s = sources[type], q = queue[type];
+        s[url] = true;
+        for (i = 0; i < q.length; i++) {
+          cur = q[i];
+          if (cur.urls.has(url)) {
+            qi = cur, val = qi.urls.values();
+            qi && (cbs = qi.callbacks);
+            for (flag = true, j = 0; j < val.length; j++) {
+              cur = val[j];
+              if (!s[cur]) {
+                flag = false;
+              }
+            }
+            if (flag && cbs && cbs.length > 0) {
+              for (j = 0; j < cbs.length; j++) {
+                cbs[j].call(context);
+              }
+              qi.load = true;
+            }
+          }
+        }
+      }
+    };
+    var load = function(type, urls, callback) {
+      var s, q, qi, node, i, cur,
+        _urls = typeof urls === 'string' ? new Set([urls]) : new Set(urls), val, url;
+      if (type === 'js' || type ==='css') {
+        s = sources[type], q = queue[type];
+        for (i = 0; i < q.length; i++) {
+          cur = q[i];
+          if (_urls.is(cur.urls)) {
+            qi = cur;
+            break;
+          }
+        }
+        val = _urls.values();
+        if (qi) {
+          callback && (qi.load || qi.callbacks.push(callback));
+          callback && (qi.load && callback());
+        } else {
+          q.push({
+            urls: _urls,
+            callbacks: callback ? [callback] : [],
+            load: false
+          });
+          for (i = 0; i < val.length; i++) {
+            node = null, url = val[i];
+            if (s[url] === undefined) {
+              (type === 'js' ) && (node = createNode('script', { src: url }));
+              (type === 'css') && (node = createNode('link', { rel: 'stylesheet', href: url }));
+              if (node) {
+                node.onload = (function(type, url) {
+                  return function() {
+                    end(type, url);
+                  };
+                })(type, url);
+                (doc.head || doc.body).appendChild(node);
+                s[url] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+    return {
+      js: function(url, callback) {
+        load('js', url, callback);
+      },
+      css: function(url, callback) {
+        load('css', url, callback);
+      }
+    };
+  })(this.document);
+})();
+</script><script>
+  (function() {
+    var TEXT_VARIABLES = {
+      version: '2.2.6',
+      sources: {
+        font_awesome: 'https://use.fontawesome.com/releases/v5.0.13/css/all.css',
+        jquery: 'https://cdn.bootcss.com/jquery/3.1.1/jquery.min.js',
+        leancloud_js_sdk: '//cdn.jsdelivr.net/npm/leancloud-storage@3.13.2/dist/av-min.js',
+        chart: 'https://cdn.bootcss.com/Chart.js/2.7.2/Chart.bundle.min.js',
+        gitalk: {
+          js: 'https://cdn.bootcss.com/gitalk/1.2.2/gitalk.min.js',
+          css: 'https://cdn.bootcss.com/gitalk/1.2.2/gitalk.min.css'
+        },
+        valine: 'https://unpkg.com/valine/dist/Valine.min.js',
+        mathjax: 'https://cdn.bootcss.com/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML',
+        mermaid: 'https://cdn.bootcss.com/mermaid/8.0.0-rc.8/mermaid.min.js'
+      },
+      site: {
+        toc: {
+          selectors: 'h1,h2,h3'
+        }
+      },
+      paths: {
+        search_js: '/assets/search.js'
+      }
+    };
+    window.TEXT_VARIABLES = TEXT_VARIABLES;
+  })();
+</script>
+</head>
+  <body>
+    <div class="root" data-is-touch="false">
+      <div class="layout--page layout--page--sidebar clearfix js-page-root">
+  <div class="page__mask d-print-none js-page-mask js-sidebar-hide"></div>
+  <div class="page__viewport">
+    <div class="page__actions d-print-none">
+      <div class="button button--circle button--lg box-shadow-2 sidebar-button js-sidebar-show">
+        <i class="fas fa-bars icon--show"></i>
+      </div>
+    </div>
+
+    <div class="grid page__grid">
+
+      <div class="page__sidebar d-print-none"><div class="sidebar-toc"><ul class="toc toc--navigator"><li class="toc-h1">开始</li><li class="toc-h2"><a href="/android/before">写在前面</a></li><li class="toc-h2"><a href="/android/reference">相关资料</a></li><li class="toc-h2"><a href="/android/java-or-kotlin">等等，Java？Kotlin？</a></li><li class="toc-h2"><a href="/android/good-habit">写代码得有个好习惯</a></li><li class="toc-h2"><a href="/android/ci">帮你节省时间的持续集成：Travis CI与GitHub Action</a></li><li class="toc-h1">组件</li><li class="toc-h2"><a href="/android/constraint">从最基础的布局开始：ConstraintLayout 1.x</a></li><li class="toc-h2"><a href="/android/view-binding">必须使用的绑定组件工具：View Binding</a></li><li class="toc-h2 active"><a href="/android/datastore">全新的可持续化数据方式：DataStore</a></li><li class="toc-h2"><a href="/android/room">简单易用的ORM数据库包：Room</a></li><li class="toc-h2"><a href="/android/recycler">最强大的列表控件：RecyclerView</a></li><li class="toc-h2"><a href="/android/mvvm">现代化的设计模式：MVVM模式以及ViewModel、LiveData</a></li><li class="toc-h2"><a href="/android/navigation">全盘Fragment化的基础：Navigation导航组件</a></li><li class="toc-h2"><a href="/android/theme">创建属于自己个性化的应用Style样式以及Theme主题的自定义</a></li><li class="toc-h2"><a href="/android/components">一些其他交互组件的集合</a></li></ul></div></div><div class="page__main js-page-main has-aside cell cell--auto">
+
+      <div class="page__main-inner"><div class="page__header d-print-none"><header class="header"><div class="main">
+      <div class="header__title">
+        <div class="header__brand"><svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><defs><style>.cls-1{fill:#8686ff;}.cls-2{fill:#fff;}.cls-3{fill:#fc0;}</style></defs><title>ZeroGo</title><rect class="cls-1" width="500" height="500"/><path class="cls-2" d="M250,225v50H448.45a202.39,202.39,0,0,0,0-50Z"/><path class="cls-3" d="M352.31,78.13l-4.84-2.8a199.72,199.72,0,0,0-19.88-9.72L129.13,409.35a201.58,201.58,0,0,0,18.56,12.52l4.84,2.8a199.72,199.72,0,0,0,19.88,9.72L370.87,90.65A201.58,201.58,0,0,0,352.31,78.13Z"/><path class="cls-3" d="M250,100a149.77,149.77,0,0,1,52.32,9.38l25.27-43.77a200.2,200.2,0,0,0-219,43l35.35,35.35A149.57,149.57,0,0,1,250,100Z"/><path class="cls-2" d="M100,250a149.57,149.57,0,0,1,43.93-106.07l-35.35-35.35a200,200,0,0,0,20.55,300.77l25.27-43.76A149.7,149.7,0,0,1,100,250Z"/><path class="cls-3" d="M250,400a149.77,149.77,0,0,1-52.32-9.38l-25.27,43.77a200.17,200.17,0,0,0,219-43l-35.35-35.35A149.55,149.55,0,0,1,250,400Z"/><path class="cls-2" d="M448.45,275H397.91a149.67,149.67,0,0,1-41.85,81.06l35.35,35.35A199.42,199.42,0,0,0,448.45,275Z"/><path class="cls-3" d="M347.47,75.33l4.84,2.8C350.71,77.17,349.09,76.24,347.47,75.33Z"/><path class="cls-3" d="M152.53,424.67l-4.84-2.8Q150.09,423.31,152.53,424.67Z"/></svg><a title="ZeroGo's Workbench🔨
+" href="/">ZeroGo's Workbench🔨 / 小Z的工作台</a></div><button class="button button--secondary button--circle search-button js-search-toggle"><i class="fas fa-search"></i></button></div><nav class="navigation">
+        <ul><li class="navigation__item"><a href="/index">Home</a></li><li class="navigation__item"><a href="/archive">Archive</a></li><li class="navigation__item"><a href="/android/home">Android Notes</a></li><li class="navigation__item"><a href="/about">About</a></li><li><button class="button button--secondary button--circle search-button js-search-toggle"><i class="fas fa-search"></i></button></li></ul>
+      </nav></div>
+  </header>
+</div><div class="page__content"><div class ="main"><div class="grid grid--reverse">
+
+              <div class="col-aside d-print-none js-col-aside"><aside class="page__aside js-page-aside"><div class="toc-aside js-toc-root"></div>
+</aside></div>
+
+              <div class="col-main cell cell--auto"><!-- start custom main top snippet -->
+
+<!-- end custom main top snippet -->
+<article itemscope itemtype="http://schema.org/Article"><div class="article__header"><header><h1>全新的可持续化数据方式：DataStore</h1></header></div><meta itemprop="headline" content="全新的可持续化数据方式：DataStore"><div class="article__info clearfix"><ul class="right-col menu"><li><i class="fas fa-user"></i> <span>ZeroGoYoosee</span></li><li><i class="far fa-calendar-alt"></i> <span>2021-03-08 10:11:36 +0800</span>
+            </li></ul></div><meta itemprop="author" content="ZeroGoYoosee"/><meta itemprop="datePublished" content="2021-03-08T02:11:36+00:00"><div class="js-article-content"><div class="layout--article"><!-- start custom article top snippet -->
+
+<!-- end custom article top snippet -->
+<div class="article__content" itemprop="articleBody"><p>自从Android诞生以来，持久化数据存储就有好多种手段，其中Preference被常常提起。一般来说，Preference是用于存储App的用户设置，并且Android还有PreferenceActivity、PreferenceFragment帮忙构建一个比较美观的设置页面。但是由于苹果的UI设计方案过于深入人心，许多软件为了在Android上模仿苹果的设计一般都不使用原生和之后推出的Material Design设计语言。</p>
+
+<p>不过这一节并不是来说如何设计设置页面，而是来说一下它的后台。原版的Preference早就已经停用，现在的Preference、PreferenceFragmentCompat都是使用的支持库的东西（现在已经转移到了<code class="language-plaintext highlighter-rouge">androidx.preference</code>），而且已经停止了更新（版本号为1.1.1，最近更新时间为2020年4月15日）说明Google自己都认为这个API过于古老了。而且Google已经不再推荐使用PreferenceActivity，建议改用PreferenceFragmentCompat，在原本的Activity中使用替换布局的方式替换。而且一堆带有Compat的类，搞的这个API过于臃肿。既然Google已经决定弃用，那么是不是应该出一个新的？</p>
+
+<p>于是，Jetpack DataStore就出现了。本节的剩余部分就是来介绍这个全新的API。</p>
+
+<p><strong>注：</strong><code class="language-plaintext highlighter-rouge">1.0.0-alpha07</code>已经推出，虽然只有一个改动但是会导致书写习惯的改变，不再需要单例类，这里仍然保留本文书写时的初始版本（<code class="language-plaintext highlighter-rouge">1.0.0-alpha06</code>）后续可能还会改变API，请注意！！即DataStore现在处在Alpha阶段，<em>非常不稳定</em>，API会随时出现重大改动，慎重更新！本节也会稍微写一下可能会影响到改动你自己的程序代码的改动介绍。</p>
+
+<h1 id="写在前面">写在前面</h1>
+<p>由于DataStore是一个全新的API，现在能获取到的信息很少，中文的资料就更少了。在我写这一部分的时候，中文相关文章不超过3篇，而且用的时候你会发现和Preference差的太远了，直接将Preference替换成DataStore是跑不出来的，因此这里给一些<strong>真正能够让你跑通</strong>的资料，好好研究一下。</p>
+
+<ul>
+  <li><strong>官方的Codelab</strong>：永远的神，任何你不懂的东西都要去这里看看，尤其是在刚刚出现新的API的时候，官方教你写的代码大多数都是可以跑的，否则就不能作为教程出现。<a href="https://developer.android.com/codelabs/android-preferences-datastore">链接</a>在这里，请自取，需要科学上网。</li>
+  <li><strong>Kotlin Flow</strong>：原本的DataStore（<code class="language-plaintext highlighter-rouge">1.0.0-alpha06</code>）实现都是使用的Kotlin Flow和协程（Coroutine），这里需要你对这俩有一定认识。这部分资料还是比较多的，本文会涉及到一些但是不会说的非常详细（因为我自己还在研究这个Flow）</li>
+  <li><strong>RxJava</strong>：如果你不会使用Flow也没关系，在<code class="language-plaintext highlighter-rouge">1.0.0-alpha06</code>的时候加入了两个全新的库：<code class="language-plaintext highlighter-rouge">androidx.datastore:datastore-rxjava2:1.0.0-alpha06</code>和<code class="language-plaintext highlighter-rouge">androidx.datastore:datastore-rxjava3:1.0.0-alpha06</code>，在使用这两个库的时候需要你对RxJava较熟悉。本文主要写有关Flow的，不会涉及到RxJava的内容，需要你自己来尝试尝试。</li>
+</ul>
+
+<h1 id="什么是datastore">什么是DataStore？</h1>
+<p>DataStore是一种全新的持久化数据存储API，原本是基于Kotlin协程和Kotlin Flow开发的，用到了许多Kotlin的语言特性。DataStore分为Preferences DataStore和Protobuf DataStore，这里主要介绍前者，后者我还需要自己慢慢探索。简单来说前者比较容易存储一些基础类型，但是比较复杂的存储就只能使用后者，后者存储较多较复杂数据的时候性能会高一些。值得一提的是，Protobuf也是Google搞出来的东西。</p>
+
+<h1 id="datastore到底有啥优势">DataStore到底有啥优势？</h1>
+<p>用一个表格来说明问题吧：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>特色</th>
+      <th style="text-align: center">SharedPreferences</th>
+      <th style="text-align: center">Preferences<br />DataStore</th>
+      <th style="text-align: center">Proto<br />DataStore</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>异步操作</td>
+      <td style="text-align: center">√<br />(仅在通过listener读改动过的数据)</td>
+      <td style="text-align: center">√<br />(通过Flow)</td>
+      <td style="text-align: center">√<br />(通过Flow)</td>
+    </tr>
+    <tr>
+      <td>同步操作</td>
+      <td style="text-align: center">√<br />(在UI线程中操作会有安全风险)</td>
+      <td style="text-align: center">x</td>
+      <td style="text-align: center">x</td>
+    </tr>
+    <tr>
+      <td>UI线程使用的<br />安全性</td>
+      <td style="text-align: center">x</td>
+      <td style="text-align: center">√<br />(会转到Dispatchers.IO)</td>
+      <td style="text-align: center">√<br />(会转到Dispatchers.IO)</td>
+    </tr>
+    <tr>
+      <td>可以发出错误信号<br />Can signal error</td>
+      <td style="text-align: center">x</td>
+      <td style="text-align: center">√</td>
+      <td style="text-align: center">√</td>
+    </tr>
+    <tr>
+      <td>在运行异常中的安全性</td>
+      <td style="text-align: center">x</td>
+      <td style="text-align: center">√</td>
+      <td style="text-align: center">√</td>
+    </tr>
+    <tr>
+      <td>具有高度一致性保证的事务性API<br />Has a transactional API with strong consistency guarantees</td>
+      <td style="text-align: center">x</td>
+      <td style="text-align: center">√</td>
+      <td style="text-align: center">√</td>
+    </tr>
+    <tr>
+      <td>数据迁移</td>
+      <td style="text-align: center">x</td>
+      <td style="text-align: center">√<br />(从SharedPreferences)</td>
+      <td style="text-align: center">√<br />(从SharedPreferences)</td>
+    </tr>
+    <tr>
+      <td>类型安全性</td>
+      <td style="text-align: center">x</td>
+      <td style="text-align: center">x</td>
+      <td style="text-align: center">√(Protocol Buffers)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>该表格摘自Codelab。</p>
+
+<h1 id="如何使用preferences-datastore">如何使用Preferences DataStore？</h1>
+<p>Preferences DataStore用法很简单：创建、在协程体里操作和编辑或查看。它只支持Int、Double、String、Boolean、Float、Long、StringSet。</p>
+
+<p>所有的教程就会这样告诉你：</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="c1">// 创建DataStore</span>
+<span class="kd">val</span> <span class="py">dataStore</span> <span class="p">=</span> <span class="n">context</span><span class="p">.</span><span class="nf">createDataStore</span><span class="p">(</span><span class="nc">Constants</span><span class="p">.</span><span class="nc">DATASTORE_NAME</span><span class="p">)</span>
+<span class="c1">// 查看键值</span>
+<span class="n">dataStore</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="nf">map</span> <span class="p">{</span>
+    <span class="n">i</span> <span class="p">=</span> <span class="n">it</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+<span class="p">}</span>
+<span class="c1">// 编辑键值</span>
+<span class="n">dataStore</span><span class="p">.</span><span class="nf">edit</span> <span class="p">{</span>
+    <span class="n">it</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="p">=</span> <span class="n">value</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>乍一看，好像没啥不对的。但是，<code class="language-plaintext highlighter-rouge">map</code>、<code class="language-plaintext highlighter-rouge">edit</code>都是<strong>挂起函数（suspend function）</strong>，这也就意味着这些函数只能出现在<strong>协程体</strong>里。但是，当你直接在协程体里运行这个代码（例如ViewModel中的viewModelScope.launch）仍然会有问题：虽然会在<code class="language-plaintext highlighter-rouge">/data/data/&lt;package&gt;/files/datastore</code>下能找到对应的文件，但是却无法存储键值。这是一个坑，我就是这么坑进去的&gt;_&lt;</p>
+
+<p>于是，我看完Codelab示例程序之后我才知道应该怎么才能正确使用DataStore。</p>
+
+<h2 id="kotlin-flow">Kotlin Flow</h2>
+<p>简单来说一下Flow这个东西。在DataStore中Flow是主角，相比于挂起函数可以返回多个结果，而且是异步地返回。可以看一下官方在Flow API文档中的描述和示例代码。用挂起函数实现异步传数据：</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">suspend</span> <span class="k">fun</span> <span class="nf">simple</span><span class="p">():</span> <span class="nc">List</span><span class="p">&lt;</span><span class="nc">Int</span><span class="p">&gt;</span> <span class="p">{</span>
+    <span class="nf">delay</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="c1">// pretend we are doing something asynchronous here</span>
+    <span class="k">return</span> <span class="nf">listOf</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="k">fun</span> <span class="nf">main</span><span class="p">()</span> <span class="p">=</span> <span class="n">runBlocking</span><span class="p">&lt;</span><span class="nc">Unit</span><span class="p">&gt;</span> <span class="p">{</span>
+    <span class="nf">simple</span><span class="p">().</span><span class="nf">forEach</span> <span class="p">{</span> <span class="n">value</span> <span class="p">-&gt;</span> <span class="nf">println</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="p">}</span> 
+<span class="p">}</span></code></pre></figure>
+
+<p>这样的写的话，suspend function会返回一个数组，主进程不会被阻塞，程序执行后1s就会立刻执行循环。而Flow的话就可以实现每次只输出一个列表中的元素，将Flow的泛型设置为Int：</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">simple</span><span class="p">():</span> <span class="nc">Flow</span><span class="p">&lt;</span><span class="nc">Int</span><span class="p">&gt;</span> <span class="p">=</span> <span class="nf">flow</span> <span class="p">{</span> <span class="c1">// flow builder</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="k">in</span> <span class="mi">1</span><span class="o">..</span><span class="mi">3</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nf">delay</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span> <span class="c1">// pretend we are doing something useful here</span>
+        <span class="nf">emit</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="c1">// emit next value</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">fun</span> <span class="nf">main</span><span class="p">()</span> <span class="p">=</span> <span class="n">runBlocking</span><span class="p">&lt;</span><span class="nc">Unit</span><span class="p">&gt;</span> <span class="p">{</span>
+    <span class="c1">// Launch a concurrent coroutine to check if the main thread is blocked</span>
+    <span class="nf">launch</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">k</span> <span class="k">in</span> <span class="mi">1</span><span class="o">..</span><span class="mi">3</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nf">println</span><span class="p">(</span><span class="s">"I'm not blocked $k"</span><span class="p">)</span>
+            <span class="nf">delay</span><span class="p">(</span><span class="mi">5000</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="c1">// Collect the flow</span>
+    <span class="nf">simple</span><span class="p">().</span><span class="nf">collect</span> <span class="p">{</span> <span class="n">value</span> <span class="p">-&gt;</span> <span class="nf">println</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="p">}</span> 
+<span class="p">}</span></code></pre></figure>
+
+<p>这样也可以不阻塞主进程，输出则是launch中的println和collect中的println交替执行。</p>
+
+<p>Flow的函数中，所有不带<code class="language-plaintext highlighter-rouge">suspend</code>修饰的函数都是中间函数（例如<code class="language-plaintext highlighter-rouge">map</code>,<code class="language-plaintext highlighter-rouge">filter</code>,<code class="language-plaintext highlighter-rouge">take</code>,<code class="language-plaintext highlighter-rouge">zip</code>），最后都要转化为带有<code class="language-plaintext highlighter-rouge">suspend</code>修饰的函数的末端函数（例如<code class="language-plaintext highlighter-rouge">collect</code>,<code class="language-plaintext highlighter-rouge">collectLatest</code>,<code class="language-plaintext highlighter-rouge">single</code>,<code class="language-plaintext highlighter-rouge">reduce</code>）。</p>
+
+<h2 id="键值对">键值对</h2>
+<p>Preferences DataStore使用的是键值对（Key-value），使用的Key是一个类：Preferences.Key。在<code class="language-plaintext highlighter-rouge">1.0.0-alpha05</code>及以前的版本如果想要定义键，定义的方式是<code class="language-plaintext highlighter-rouge">preferencesKey&lt;Type&gt;(name)</code>，在<code class="language-plaintext highlighter-rouge">1.0.0-alpha06</code>中，这个API改掉了，估计是怕用户输入这个泛型可能会越界，因此他们将这个定义方式改成了<code class="language-plaintext highlighter-rouge">intPreferencesKey()</code>、<code class="language-plaintext highlighter-rouge">doublePreferencesKey()</code>等等。</p>
+
+<p>当要检索值的时候，可以使用<code class="language-plaintext highlighter-rouge">dataStore.data</code>的<code class="language-plaintext highlighter-rouge">get()</code>函数进行检索，就比较类似于SharedPreference的<code class="language-plaintext highlighter-rouge">getString()</code>、<code class="language-plaintext highlighter-rouge">getFloat()</code>之类的；当需要编辑值的时候，调用<code class="language-plaintext highlighter-rouge">dataStore.edit()</code>函数直接编辑，这个也和SharedPreference类似。</p>
+
+<h2 id="定义datastore100-alpha07">定义DataStore（1.0.0-alpha07）</h2>
+<p>它又改了！！我的文章有一部分就没法用啦…</p>
+
+<p>之前之所以需要创造操作符单例类，原因在于通过<code class="language-plaintext highlighter-rouge">Context.createDataStore(String)</code>方法创建的DataStore并不是单例的，也就是说在使用过程中可能会创建多个DataStore，这不符合逻辑。现在这段API改掉，那么就不需要单例类了：</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="c1">// Preferences DataStore</span>
+<span class="k">fun</span> <span class="nc">Context</span><span class="p">.</span><span class="nf">dataStore</span> <span class="p">=</span> <span class="nf">preferencesDataStore</span><span class="p">(</span><span class="s">"example"</span><span class="p">)</span>
+<span class="c1">// Protobuf DataStore</span>
+<span class="k">fun</span> <span class="nc">Context</span><span class="p">.</span><span class="nf">dataStore</span> <span class="p">=</span> <span class="nf">dataStore</span><span class="p">(</span><span class="s">"example"</span><span class="p">,</span> <span class="n">serializer</span><span class="p">)</span></code></pre></figure>
+
+<p>上面的代码官方的说明是说：“<em>要在顶级Kotlin文件中</em>”，我自己的话是将所有跟这个类似的扩展函数都放到一个文件中，然后在自定义的<code class="language-plaintext highlighter-rouge">Application</code>类中定义DataStore。</p>
+
+<p>现在只要用到DataStore，直接在协程体里使用即可。</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">viewModelScope</span><span class="p">.</span><span class="nf">launch</span> <span class="p">{</span>
+    <span class="c1">// edit</span>
+    <span class="n">dataStore</span><span class="p">.</span><span class="nf">edit</span> <span class="p">{</span>
+        <span class="n">it</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="p">=</span> <span class="n">value</span>
+    <span class="p">}</span>
+    <span class="c1">// ...</span>
+<span class="p">}</span></code></pre></figure>
+
+<h2 id="创建操作符单例类100-alpha06及以前">创建操作符单例类（1.0.0-alpha06及以前）</h2>
+<p>问题来了，怎么使用呢？我自己试过直接在协程体里用是无法生效的，因此我去看了一下Codelab，它是用了一个特殊的单例类，在单例类里面执行创建DataStore的操作。由于创建操作需要在context中创建，因此在创建单例类的中需要传入一个参数，这样的话<code class="language-plaintext highlighter-rouge">object</code>关键字就用不了了（Constructors are not allowed for objects）我采用懒汉式定义方法：</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="kd">class</span> <span class="nc">DataStoreOperator</span> <span class="k">private</span> <span class="k">constructor</span><span class="p">(</span><span class="kd">val</span> <span class="py">context</span><span class="p">:</span> <span class="nc">Context</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">private</span> <span class="kd">val</span> <span class="py">dataStore</span><span class="p">:</span> <span class="nc">DataStore</span><span class="p">&lt;</span><span class="nc">Preferences</span><span class="p">&gt;</span> <span class="p">=</span>
+        <span class="n">context</span><span class="p">.</span><span class="nf">createDataStore</span><span class="p">(</span><span class="nc">Constants</span><span class="p">.</span><span class="nc">DATASTORE_NAME</span><span class="p">)</span>
+
+    <span class="k">suspend</span> <span class="k">fun</span> <span class="nf">setSomeValue</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nc">Int</span><span class="p">)</span> <span class="p">=</span> <span class="nf">setValue</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">private</span> <span class="k">suspend</span> <span class="k">inline</span> <span class="k">fun</span> <span class="p">&lt;</span><span class="k">reified</span> <span class="nc">T</span><span class="p">&gt;</span> <span class="nf">setValue</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nc">Preferences</span><span class="p">.</span><span class="nc">Key</span><span class="p">&lt;</span><span class="nc">T</span><span class="p">&gt;,</span> <span class="n">value</span><span class="p">:</span> <span class="nc">T</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">dataStore</span><span class="p">.</span><span class="nf">edit</span> <span class="p">{</span>
+            <span class="n">it</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="p">=</span> <span class="n">value</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">companion</span> <span class="k">object</span> <span class="p">{</span>
+        <span class="k">private</span> <span class="kd">var</span> <span class="py">operator</span><span class="p">:</span> <span class="nc">DataStoreOperator</span><span class="p">?</span> <span class="p">=</span> <span class="k">null</span>
+        <span class="k">fun</span> <span class="nf">instance</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="nc">Context</span><span class="p">)</span> <span class="p">=</span>
+            <span class="k">if</span> <span class="p">(</span><span class="k">operator</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nc">DataStoreOperator</span><span class="p">(</span><span class="n">context</span><span class="p">).</span><span class="nf">also</span> <span class="p">{</span> <span class="k">operator</span> <span class="p">=</span> <span class="n">it</span> <span class="p">}</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="k">operator</span><span class="o">!!</span>
+
+        <span class="k">fun</span> <span class="nf">instance</span><span class="p">()</span> <span class="p">=</span> <span class="k">if</span> <span class="p">(</span><span class="k">operator</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">throw</span> <span class="nc">NullPointerException</span><span class="p">()</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="k">operator</span><span class="o">!!</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>这段代码中我还多了一个函数：<code class="language-plaintext highlighter-rouge">setValue()</code>，为后面创建编辑每个键值的函数做准备（之后所有的编辑操作都可以使用简单的<code class="language-plaintext highlighter-rouge">setSomeValue()</code>）。</p>
+
+<p>单例类的初始化是调用<code class="language-plaintext highlighter-rouge">instant()函数</code>。一般情况下，第二个<code class="language-plaintext highlighter-rouge">instant()</code>可能会用不到，因为你可以只在自定义的Application类中初始化，这样的话你只要有Context就可以获取到Application对象。</p>
+
+<h2 id="读取和修改键值">读取和修改键值</h2>
+<p>上一个小节已经解决了如何修改键值，那么这个小节来解决如何读取。DataStore其实可以一次性读取多个键值，读取的时候需要使用到<code class="language-plaintext highlighter-rouge">dataStore.data</code>这个<code class="language-plaintext highlighter-rouge">Flow&lt;Preferences&gt;</code>对象。在上面介绍Flow的时候我已经说过用末端函数来返回结果，因此你可以将你想一次性输出的所有的键值封装到一个类中：</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="kd">data class</span> <span class="nc">Settings</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">i</span><span class="p">:</span> <span class="nc">Int</span><span class="p">,</span>
+    <span class="kd">val</span> <span class="py">e</span><span class="p">:</span> <span class="nc">Enumber</span>
+<span class="p">}</span>
+
+<span class="k">enum</span> <span class="kd">class</span> <span class="nc">Enumber</span> <span class="p">{</span>
+    <span class="nc">FIRST</span><span class="p">,</span> <span class="nc">SECOND</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>这里举例特意举了一个枚举类的例子，虽然Preferences DataStore只支持那些类型，但是枚举类比较特殊，是可以转化成String类型的。那么读取或修改的代码如下：</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="c1">// 键值的定义</span>
+<span class="kd">val</span> <span class="py">keyI</span> <span class="p">=</span> <span class="nf">intPreferencesKey</span><span class="p">(</span><span class="s">"int"</span><span class="p">)</span>
+<span class="kd">val</span> <span class="py">keyE</span> <span class="p">=</span> <span class="nf">namePreferencesKey</span><span class="p">(</span><span class="s">"enum"</span><span class="p">)</span>
+<span class="c1">// 读取函数</span>
+<span class="kd">val</span> <span class="py">settings</span> <span class="p">=</span> <span class="n">dataStore</span><span class="p">.</span><span class="n">data</span>
+    <span class="p">.</span><span class="k">catch</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">it</span> <span class="k">is</span> <span class="nc">IOException</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nf">emit</span><span class="p">(</span><span class="nf">emptyPreferences</span><span class="p">())</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="k">throw</span> <span class="n">it</span>
+    <span class="p">}</span>
+    <span class="p">.</span><span class="nf">map</span> <span class="p">{</span>
+        <span class="kd">val</span> <span class="py">i</span> <span class="p">=</span> <span class="n">it</span><span class="p">[</span><span class="n">keyI</span><span class="p">]</span> <span class="o">?:</span> <span class="p">-</span><span class="mi">1</span> <span class="c1">// 如果找不到可以使用?:操作符设置默认输出值，与SharedPreference中的defValue参数类似</span>
+        <span class="kd">val</span> <span class="py">e</span> <span class="p">=</span> <span class="nc">Enumber</span><span class="p">.</span><span class="nf">valueOf</span><span class="p">(</span><span class="n">it</span><span class="p">[</span><span class="n">keyE</span><span class="p">]</span> <span class="o">?:</span> <span class="nc">Enumber</span><span class="p">.</span><span class="nc">FIRST</span><span class="p">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="nc">Settings</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="c1">// 修改函数</span>
+<span class="k">suspend</span> <span class="k">fun</span> <span class="nf">setI</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nc">Int</span><span class="p">)</span> <span class="p">=</span> <span class="nf">setValue</span><span class="p">(</span><span class="n">keyI</span><span class="p">,</span> <span class="nc">I</span><span class="p">)</span>
+<span class="k">suspend</span> <span class="k">fun</span> <span class="nf">setE</span><span class="p">(</span><span class="n">e</span><span class="p">:</span> <span class="nc">Enumber</span><span class="p">)</span> <span class="p">=</span> <span class="nf">setValue</span><span class="p">(</span><span class="n">keyE</span><span class="p">,</span> <span class="n">e</span><span class="p">.</span><span class="n">name</span><span class="p">)</span></code></pre></figure>
+
+<p>这些函数都应该写到上一小节中的DSO类（<code class="language-plaintext highlighter-rouge">DataStoreOperator</code>）里。</p>
+
+<h2 id="使用">使用</h2>
+<p>使用的话就很简单了，之前就说过直接在协程体里使用即可。<code class="language-plaintext highlighter-rouge">ViewModel</code>中自动提供一个<code class="language-plaintext highlighter-rouge">viewModelScope</code>，<code class="language-plaintext highlighter-rouge">Activity</code>中有<code class="language-plaintext highlighter-rouge">lifecycleScope</code>，调用其中的<code class="language-plaintext highlighter-rouge">launch()</code>函数即可使用：</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="kd">class</span> <span class="nc">MainViewModel</span><span class="p">(</span><span class="n">app</span><span class="p">:</span> <span class="nc">MyApp</span><span class="p">):</span> <span class="nc">AndroidViewModel</span><span class="p">(</span><span class="n">app</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">dso</span> <span class="p">=</span> <span class="n">getApplication</span><span class="p">&lt;</span><span class="nc">MyApp</span><span class="p">&gt;().</span><span class="n">dataStoreOperator</span>
+    <span class="nf">init</span> <span class="p">{</span>
+        <span class="n">viewModelScope</span><span class="p">.</span><span class="nf">launch</span> <span class="p">{</span>
+            <span class="kd">val</span> <span class="py">settings</span> <span class="p">=</span> <span class="n">dso</span><span class="p">.</span><span class="n">settings</span>
+            <span class="n">dso</span><span class="p">.</span><span class="nf">setI</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="o">..</span><span class="p">.</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>顺带提一句，如果你要使用<code class="language-plaintext highlighter-rouge">ViewModel</code>建议使用<code class="language-plaintext highlighter-rouge">AndroidViewModel</code>，这个要在构造对象的时候输入一个<code class="language-plaintext highlighter-rouge">Application</code>对象，使用<code class="language-plaintext highlighter-rouge">getApplication&lt;MyApp&gt;()</code>函数在函数体里调用你自己的<code class="language-plaintext highlighter-rouge">Application</code>，方便你使用里面的东西，例如Room数据库、DataStore、Preference、Resources等。</p>
+
+<h1 id="版本更迭">版本更迭</h1>
+<p>最后来总结一下DataStore的版本更迭吧：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">时间</th>
+      <th style="text-align: center">版本号</th>
+      <th>更新</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">2021.08.04</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">1.0.0</code></td>
+      <td>=<code class="language-plaintext highlighter-rouge">1.0.0-rc02</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">2021.07.21</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">1.0.0-rc02</code></td>
+      <td>Bugs fix</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">2021.06.30</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">1.0.0-rc01</code></td>
+      <td>Bugs fix</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">2021.06.16</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">1.0.0-beta02</code></td>
+      <td>Bugs fix</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">2021.04.21</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">1.0.0-beta01</code></td>
+      <td>Bugs fix</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">2021.03.10</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">1.0.0-alpha08</code></td>
+      <td>依赖于context的迁移到DataStore property delegate</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">2021.02.24</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">1.0.0-alpha07</code></td>
+      <td>全新的创建DataStore的方式（同时createDataStore被移除）</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">2021.01.13</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">1.0.0-alpha06</code></td>
+      <td>添加RxJava封装容器，移除<code class="language-plaintext highlighter-rouge">preferencesKey&lt;T&gt;(name: String): Key&lt;T&gt;</code>方法，并替换为每种受支持类型专用的方法，隐藏CorruptionHandler接口</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">2020.12.02</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">1.0.0-alpha05</code></td>
+      <td>允许（但不强求）关闭传递给<code class="language-plaintext highlighter-rouge">Serializer.writeTo()</code>的<code class="language-plaintext highlighter-rouge">OutputStream</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">2020.11.17</td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">1.0.0-alpha04</code></td>
+      <td>修复重大bug</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">2020.11.11</td>
+      <td style="text-align: center">以前版本</td>
+      <td>支持双精度拥有重大Bug：导致Preference Datastore崩溃并显示<code class="language-plaintext highlighter-rouge">java.lang.NoClassDefFoundError</code></td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="d-print-none"><footer class="article__footer"><meta itemprop="dateModified" content="2021-03-08T02:11:36+00:00"><!-- start custom article footer snippet -->
+
+<!-- end custom article footer snippet -->
+</footer>
+<div class="article__section-navigator clearfix"><div class="previous"><span></span><a href="/android/view-binding">必须使用的绑定组件工具：View Binding</a></div><div class="next"><span></span><a href="/android/room">简单易用的ORM数据库包：Room</a></div></div></div>
+
+</div>
+
+<script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    $(function() {
+      var $this ,$scroll;
+      var $articleContent = $('.js-article-content');
+      var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+      var scroll = hasSidebar ? '.js-page-main' : 'html, body';
+      $scroll = $(scroll);
+
+      $articleContent.find('.highlight').each(function() {
+        $this = $(this);
+        $this.attr('data-lang', $this.find('code').attr('data-lang'));
+      });
+      $articleContent.find('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]').each(function() {
+        $this = $(this);
+        $this.append($('<a class="anchor d-print-none" aria-hidden="true"></a>').html('<i class="fas fa-anchor"></i>'));
+      });
+      $articleContent.on('click', '.anchor', function() {
+        $scroll.scrollToAnchor('#' + $(this).parent().attr('id'), 400);
+      });
+    });
+  });
+})();
+</script>
+</div><section class="page__comments d-print-none"><!-- fix text color in the input textarea of gitalk -->
+	<style type="text/css">
+		.gitalk-wrapper .gt-header-textarea {
+			color: #333 !important;
+		}
+	</style><div class="gitalk-wrapper" id="js-gitalk-container"></div><script>
+		window.Lazyload.css('https://cdn.bootcss.com/gitalk/1.2.2/gitalk.min.css');
+		window.Lazyload.js('https://cdn.bootcss.com/gitalk/1.2.2/gitalk.min.js', function() {
+			var gitalk = new Gitalk({
+				clientID: '620e8d7bf0414c251bdc',
+				clientSecret: '86aaa64adbb28e9a5974fa7c6ce331a6aeb824cd',
+				repo: 'z7workbench.github.io',
+				owner: 'z7workbench',
+				admin: ['z7workbench'],
+				id: '2.3-datastore'
+			});
+			gitalk.render('js-gitalk-container');
+		});
+	</script></section></article><!-- start custom main bottom snippet -->
+
+<!-- end custom main bottom snippet -->
+</div>
+            </div></div></div><div class="page__footer d-print-none">
+<footer class="footer py-4 js-page-footer">
+  <div class="main"><div itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="ZeroGoYoosee"><meta itemprop="url" content="https://www.z7workbench.xin/"><meta itemprop="description" content="A very weak programmer, Hearthstone/StarCraft II/Overwatch player, fan of Marvel's Ghost-Spider"><div class="footer__author-links"><div class="author-links">
+  <ul class="menu menu--nowrap menu--inline"><link itemprop="url" href="https://www.z7workbench.xin/"><li title="">
+        <a class="button button--circle weibo-button" itemprop="sameAs" href="https://weibo.com/5885373273" target="_blank">
+          <div class="icon"><svg fill="#000000" width="24px" height="24px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+	<path d="M769.226164 496.610234c-14.420098-4.330228-24.309277-7.266877-16.746482-26.214823 16.350218-41.133578 18.046881-76.626289 0.307181-101.939024-33.242099-47.500415-124.194284-44.928286-228.44638-1.280945 0-0.056317-32.73525 14.323848-24.371737-11.64523 16.042013-51.54906 13.626547-94.739726-11.332929-119.662341-56.566349-56.601163-206.976479 2.134908-335.954595 131.078209-96.594075 96.61353-152.681222 198.989775-152.681222 287.52035 0 169.337597 217.152361 272.292366 429.593589 272.292366 278.498445 0 463.752111-161.808592 463.752111-290.273715C893.345701 558.867622 827.968378 514.820945 769.226164 496.610234zM430.163922 866.063936c-169.51781 16.728051-315.851649-59.899262-326.864086-171.202185-11.010389-111.275277 117.530505-215.061482 287.031932-231.823323 169.537265-16.761841 315.876224 59.866496 326.86511 171.119247C728.190884 745.495411 599.705282 849.291856 430.163922 866.063936z" />
+	<path d="M954.16753 186.714824c-67.256246-74.565105-166.457264-102.990607-258.020739-83.522502l-0.037886 0c-21.188318 4.535015-34.695065 25.37929-30.159026 46.527675 4.516584 21.166816 25.352668 34.691993 46.54201 30.174385 65.139769-13.832358 135.634727 6.400627 183.442323 59.368863 47.765615 52.96414 60.740938 125.206957 40.282686 188.537431l0.011263 0.012287c-6.666851 20.629249 4.617954 42.698153 25.271777 49.366027 20.570885 6.662755 42.687913-4.607714 49.362955-25.188838 0-0.037886 0-0.116729 0.011263-0.150519C1039.577146 362.756133 1021.443231 261.206205 954.16753 186.714824" />
+	<path d="M850.886125 279.919669c-32.732179-36.315956-81.068126-50.108381-125.685136-40.621609-18.234261 3.885839-29.856965 21.833398-25.946551 40.085067 3.89915 18.173849 21.833398 29.851845 40.024654 25.893307l0 0.037886c21.809848-4.610786 45.459709 2.113405 61.461789 19.83365 16.018463 17.757107 20.323092 41.949655 13.45043 63.178931l0.035838 0c-5.715614 17.717174 3.983113 36.770584 21.717694 42.511796 17.7397 5.677728 36.76956-3.992328 42.493365-21.756603C892.458972 365.691759 883.686907 316.228458 850.886125 279.919669" />
+	<path d="M447.103928 548.691741c-80.666743-20.985579-171.84317 19.215193-206.880229 90.291746-35.685212 72.492657-1.180599 152.963828 80.321676 179.268757 84.41947 27.224424 183.926645-14.492797 218.521364-92.744074C573.187374 649.021137 530.586496 570.268131 447.103928 548.691741zM385.506979 733.819463c-16.398343 26.160554-51.51015 37.623523-77.954335 25.54824-26.066352-11.868448-33.760211-42.248645-17.360844-67.757975 16.197652-25.400793 50.129884-36.716316 76.378497-25.711046C393.129162 677.216253 401.60838 707.401901 385.506979 733.819463zM439.522702 664.493841c-5.929616 10.131852-19.03498 15.010909-29.304039 10.785123-10.096014-4.15411-13.261002-15.495231-7.522862-25.454038 5.906066-9.908634 18.500485-14.747758 28.572948-10.750309C441.502995 642.817105 445.180975 654.283146 439.522702 664.493841z" />
+</svg>
+</div>
+        </a>
+      </li><li title="">
+        <a class="button button--circle zhihu-button" itemprop="sameAs" href="https://www.zhihu.com/people/qz777zp" target="_blank">
+          <div class="icon"><svg fill="#000000" width="24px" height="24px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M351.791182 562.469462l192.945407 0c0-45.367257-21.3871-71.939449-21.3871-71.939449L355.897709 490.530013c3.977591-82.182744 7.541767-187.659007 8.816806-226.835262l159.282726 0c0 0-0.86367-67.402109-18.578124-67.402109s-279.979646 0-279.979646 0 16.850783-88.141456 39.318494-127.053698c0 0-83.60514-4.510734-112.121614 106.962104S81.344656 355.077018 76.80834 367.390461c-4.536316 12.313443 24.62791 5.832845 36.941354 0 12.313443-5.832845 68.050885-25.924439 84.252893-103.69571l86.570681 0c1.165546 49.28652 4.596691 200.335724 3.515057 226.835262L109.86113 490.530013c-25.275663 18.147312-33.701566 71.939449-33.701566 71.939449L279.868105 562.469462c-8.497535 56.255235-23.417339 128.763642-44.275389 167.210279-33.05279 60.921511-50.55235 116.65793-169.802314 212.576513 0 0-19.442818 14.257725 40.829917 9.073656 60.273758-5.185093 117.305683-20.739347 156.840094-99.807147 20.553105-41.107233 41.805128-93.250824 58.386782-146.138358l-0.055259 0.185218 167.855986 193.263655c0 0 22.035876-51.847855 5.832845-108.880803L371.045711 650.610918l-42.1244 31.157627-0.045025 0.151449c11.69946-41.020252 20.11206-81.5749 22.726607-116.858498C351.665315 564.212152 351.72876 563.345412 351.791182 562.469462z" p-id="907"></path><path d="M584.918753 182.033893l0 668.840094 70.318532 0 28.807093 80.512708 121.875768-80.512708 153.600307 0L959.520453 182.033893 584.918753 182.033893zM887.150192 778.934538l-79.837326 0-99.578949 65.782216-23.537066-65.782216-24.855084 0L659.341766 256.673847l227.807403 0L887.149169 778.934538z" />
+</svg>
+</div>
+        </a>
+      </li><li title="">
+        <a class="button button--circle github-button" itemprop="sameAs" href="https://github.com/z7workbench" target="_blank">
+          <div class="icon"><svg fill="#000000" width="24px" height="24px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path class="svgpath" data-index="path_0" fill="#272636" d="M0 525.2c0 223.6 143.3 413.7 343 483.5 26.9 6.8 22.8-12.4 22.8-25.4l0-88.7c-155.3 18.2-161.5-84.6-172-101.7-21.1-36-70.8-45.2-56-62.3 35.4-18.2 71.4 4.6 113.1 66.3 30.2 44.7 89.1 37.2 119 29.7 6.5-26.9 20.5-50.9 39.7-69.6C248.8 728.2 181.7 630 181.7 513.2c0-56.6 18.7-108.7 55.3-150.7-23.3-69.3 2.2-128.5 5.6-137.3 66.5-6 135.5 47.6 140.9 51.8 37.8-10.2 80.9-15.6 129.1-15.6 48.5 0 91.8 5.6 129.8 15.9 12.9-9.8 77-55.8 138.8-50.2 3.3 8.8 28.2 66.7 6.3 135 37.1 42.1 56 94.6 56 151.4 0 117-67.5 215.3-228.8 243.7 26.9 26.6 43.6 63.4 43.6 104.2l0 128.8c0.9 10.3 0 20.5 17.2 20.5C878.1 942.4 1024 750.9 1024 525.3c0-282.9-229.3-512-512-512C229.1 13.2 0 242.3 0 525.2L0 525.2z" />
+</svg>
+</div>
+        </a>
+      </li></ul>
+</div>
+</div>
+    </div><div class="site-info mt-2">
+      <div>© ZeroGo's Workbench🔨 / 小Z的工作台 ,
+        Powered by <a title="Jekyll is a simple, blog-aware, static site generator." href="http://jekyllrb.com/">Jekyll</a> & <a
+        title="TeXt is a super customizable Jekyll theme." href="https://github.com/kitian616/jekyll-TeXt-theme">TeXt Theme</a>.
+      </div>
+    </div>
+  </div>
+</footer>
+</div></div>
+    </div></div></div><script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $body = $('body'), $window = $(window);
+    var $pageRoot = $('.js-page-root'), $pageMain = $('.js-page-main');
+    var activeCount = 0;
+    function modal(options) {
+      var $root = this, visible, onChange, hideWhenWindowScroll = false;
+      var scrollTop;
+      function setOptions(options) {
+        var _options = options || {};
+        visible = _options.initialVisible === undefined ? false : show;
+        onChange = _options.onChange;
+        hideWhenWindowScroll = _options.hideWhenWindowScroll;
+      }
+      function init() {
+        setState(visible);
+      }
+      function setState(isShow) {
+        if (isShow === visible) {
+          return;
+        }
+        visible = isShow;
+        if (visible) {
+          activeCount++;
+          scrollTop = $(window).scrollTop() || $pageMain.scrollTop();
+          $root.addClass('modal--show');
+          $pageMain.scrollTop(scrollTop);
+          activeCount === 1 && ($pageRoot.addClass('show-modal'), $body.addClass('of-hidden'));
+          hideWhenWindowScroll && window.hasEvent('touchstart') && $window.on('scroll', hide);
+          $window.on('keyup', handleKeyup);
+        } else {
+          activeCount > 0 && activeCount--;
+          $root.removeClass('modal--show');
+          $window.scrollTop(scrollTop);
+          activeCount === 0 && ($pageRoot.removeClass('show-modal'), $body.removeClass('of-hidden'));
+          hideWhenWindowScroll && window.hasEvent('touchstart') && $window.off('scroll', hide);
+          $window.off('keyup', handleKeyup);
+        }
+        onChange && onChange(visible);
+      }
+      function show() {
+        setState(true);
+      }
+      function hide() {
+        setState(false);
+      }
+      function handleKeyup(e) {
+        // Char Code: 27  ESC
+        if (e.which ===  27) {
+          hide();
+        }
+      }
+      setOptions(options);
+      init();
+      return {
+        show: show,
+        hide: hide,
+        $el: $root
+      };
+    }
+    $.fn.modal = modal;
+  });
+})();
+</script><div class="modal modal--overflow page__search-modal d-print-none js-page-search-modal"><script>
+(function () {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    // search panel
+    var search = (window.search || (window.search = {}));
+    var useDefaultSearchBox = window.useDefaultSearchBox === undefined ?
+      true : window.useDefaultSearchBox ;
+
+    var $searchModal = $('.js-page-search-modal');
+    var $searchToggle = $('.js-search-toggle');
+    var searchModal = $searchModal.modal({ onChange: handleModalChange, hideWhenWindowScroll: true });
+    var modalVisible = false;
+    search.searchModal = searchModal;
+
+    var $searchBox = null;
+    var $searchInput = null;
+    var $searchClear = null;
+
+    function getModalVisible() {
+      return modalVisible;
+    }
+    search.getModalVisible = getModalVisible;
+
+    function handleModalChange(visible) {
+      modalVisible = visible;
+      if (visible) {
+        search.onShow && search.onShow();
+        useDefaultSearchBox && $searchInput[0] && $searchInput[0].focus();
+      } else {
+        search.onShow && search.onHide();
+        useDefaultSearchBox && $searchInput[0] && $searchInput[0].blur();
+        setTimeout(function() {
+          useDefaultSearchBox && ($searchInput.val(''), $searchBox.removeClass('not-empty'));
+          search.clear && search.clear();
+          window.pageAsideAffix && window.pageAsideAffix.refresh();
+        }, 400);
+      }
+    }
+
+    $searchToggle.on('click', function() {
+      modalVisible ? searchModal.hide() : searchModal.show();
+    });
+    // Char Code: 83  S, 191 /
+    $(window).on('keyup', function(e) {
+      if (!modalVisible && !window.isFormElement(e.target || e.srcElement) && (e.which === 83 || e.which === 191)) {
+        modalVisible || searchModal.show();
+      }
+    });
+
+    if (useDefaultSearchBox) {
+      $searchBox = $('.js-search-box');
+      $searchInput = $searchBox.children('input');
+      $searchClear = $searchBox.children('.js-icon-clear');
+      search.getSearchInput = function() {
+        return $searchInput.get(0);
+      };
+      search.getVal = function() {
+        return $searchInput.val();
+      };
+      search.setVal = function(val) {
+        $searchInput.val(val);
+      };
+
+      $searchInput.on('focus', function() {
+        $(this).addClass('focus');
+      });
+      $searchInput.on('blur', function() {
+        $(this).removeClass('focus');
+      });
+      $searchInput.on('input', window.throttle(function() {
+        var val = $(this).val();
+        if (val === '' || typeof val !== 'string') {
+          search.clear && search.clear();
+        } else {
+          $searchBox.addClass('not-empty');
+          search.onInputNotEmpty && search.onInputNotEmpty(val);
+        }
+      }, 400));
+      $searchClear.on('click', function() {
+        $searchInput.val(''); $searchBox.removeClass('not-empty');
+        search.clear && search.clear();
+      });
+    }
+  });
+})();
+</script><div class="search search--dark">
+  <div class="main">
+    <div class="search__header"></div>
+    <div class="search-bar">
+      <div class="search-box js-search-box">
+        <div class="search-box__icon-search"><i class="fas fa-search"></i></div>
+        <input type="text" />
+        <div class="search-box__icon-clear js-icon-clear">
+          <a><i class="fas fa-times"></i></a>
+        </div>
+      </div>
+      <button class="button button--theme-dark button--pill search__cancel js-search-toggle">
+        </button>
+    </div>
+    <div class="search-result js-search-result"></div>
+  </div>
+</div>
+<script>var SOURCES = window.TEXT_VARIABLES.sources;
+var PAHTS = window.TEXT_VARIABLES.paths;
+window.Lazyload.js([SOURCES.jquery, PAHTS.search_js], function() {
+  var search = (window.search || (window.search = {}));
+  var searchData = window.TEXT_SEARCH_DATA || {};
+
+  function memorize(f) {
+    var cache = {};
+    return function () {
+      var key = Array.prototype.join.call(arguments, ',');
+      if (key in cache) return cache[key];
+      else return cache[key] = f.apply(this, arguments);
+    };
+  }
+
+  /// search
+  function searchByQuery(query) {
+    var i, j, key, keys, cur, _title, result = {};
+    keys = Object.keys(searchData);
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i];
+      for (j = 0; j < searchData[key].length; j++) {
+        cur = searchData[key][j], _title = cur.title;
+        if ((result[key] === undefined || result[key] && result[key].length < 4 )
+          && _title.toLowerCase().indexOf(query.toLowerCase()) >= 0) {
+          if (result[key] === undefined) {
+            result[key] = [];
+          }
+          result[key].push(cur);
+        }
+      }
+    }
+    return result;
+  }
+
+  var renderHeader = memorize(function(header) {
+    return $('<p class="search-result__header">' + header + '</p>');
+  });
+
+  var renderItem = function(index, title, url) {
+    return $('<li class="search-result__item" data-index="' + index + '"><a class="button" href="' + url + '">' + title + '</a></li>');
+  };
+
+  function render(data) {
+    if (!data) { return null; }
+    var $root = $('<ul></ul>'), i, j, key, keys, cur, itemIndex = 0;
+    keys = Object.keys(data);
+    for (i = 0; i < keys.length; i++) {
+      key = keys[i];
+      $root.append(renderHeader(key));
+      for (j = 0; j < data[key].length; j++) {
+        cur = data[key][j];
+        $root.append(renderItem(itemIndex++, cur.title, cur.url));
+      }
+    }
+    return $root;
+  }
+
+  // search box
+  var $result = $('.js-search-result'), $resultItems;
+  var lastActiveIndex, activeIndex;
+
+  function clear() {
+    $result.html(null);
+    $resultItems = $('.search-result__item'); activeIndex = 0;
+  }
+  function onInputNotEmpty(val) {
+    $result.html(render(searchByQuery(val)));
+    $resultItems = $('.search-result__item'); activeIndex = 0;
+    $resultItems.eq(0).addClass('active');
+  }
+
+  search.clear = clear;
+  search.onInputNotEmpty = onInputNotEmpty;
+
+  function updateResultItems() {
+    lastActiveIndex >= 0 && $resultItems.eq(lastActiveIndex).removeClass('active');
+    activeIndex >= 0 && $resultItems.eq(activeIndex).addClass('active');
+  }
+
+  function moveActiveIndex(direction) {
+    var itemsCount = $resultItems ? $resultItems.length : 0;
+    if (itemsCount > 1) {
+      lastActiveIndex = activeIndex;
+      if (direction === 'up') {
+        activeIndex = (activeIndex - 1 + itemsCount) % itemsCount;
+      } else if (direction === 'down') {
+        activeIndex = (activeIndex + 1 + itemsCount) % itemsCount;
+      }
+      updateResultItems();
+    }
+  }
+
+  // Char Code: 13  Enter, 37  ⬅, 38  ⬆, 39  ➡, 40  ⬇
+  $(window).on('keyup', function(e) {
+    var modalVisible = search.getModalVisible && search.getModalVisible();
+    if (modalVisible) {
+      if (e.which === 38) {
+        modalVisible && moveActiveIndex('up');
+      } else if (e.which === 40) {
+        modalVisible && moveActiveIndex('down');
+      } else if (e.which === 13) {
+        modalVisible && $resultItems && activeIndex >= 0 && $resultItems.eq(activeIndex).children('a')[0].click();
+      }
+    }
+  });
+
+  $result.on('mouseover', '.search-result__item > a', function() {
+    var itemIndex = $(this).parent().data('index');
+    itemIndex >= 0 && (lastActiveIndex = activeIndex, activeIndex = itemIndex, updateResultItems());
+  });
+});
+</script>
+</div></div>
+
+
+<script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function scrollToAnchor(anchor, duration, callback) {
+      var $root = this;
+      $root.animate({ scrollTop: $(anchor).position().top }, duration, function() {
+        window.history.replaceState(null, '', window.location.href.split('#')[0] + anchor);
+        callback && callback();
+      });
+    }
+    $.fn.scrollToAnchor = scrollToAnchor;
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function affix(options) {
+      var $root = this, $window = $(window), $scrollTarget, $scroll,
+        offsetBottom = 0, scrollTarget = window, scroll = window.document, disabled = false, isOverallScroller = true,
+        rootTop, rootLeft, rootHeight, scrollBottom, rootBottomTop,
+        hasInit = false, curState;
+
+      function setOptions(options) {
+        var _options = options || {};
+        _options.offsetBottom && (offsetBottom = _options.offsetBottom);
+        _options.scrollTarget && (scrollTarget = _options.scrollTarget);
+        _options.scroll && (scroll = _options.scroll);
+        _options.disabled !== undefined && (disabled = _options.disabled);
+        $scrollTarget = $(scrollTarget);
+        isOverallScroller = window.isOverallScroller($scrollTarget[0]);
+        $scroll = $(scroll);
+      }
+      function preCalc() {
+        top();
+        rootHeight = $root.outerHeight();
+        rootTop = $root.offset().top + (isOverallScroller ? 0 :  $scrollTarget.scrollTop());
+        rootLeft = $root.offset().left;
+      }
+      function calc(needPreCalc) {
+        needPreCalc && preCalc();
+        scrollBottom = $scroll.outerHeight() - offsetBottom - rootHeight;
+        rootBottomTop = scrollBottom - rootTop;
+      }
+      function top() {
+        if (curState !== 'top') {
+          $root.removeClass('fixed').css({
+            left: 0,
+            top: 0
+          });
+          curState = 'top';
+        }
+      }
+      function fixed() {
+        if (curState !== 'fixed') {
+          $root.addClass('fixed').css({
+            left: rootLeft + 'px',
+            top: 0
+          });
+          curState = 'fixed';
+        }
+      }
+      function bottom() {
+        if (curState !== 'bottom') {
+          $root.removeClass('fixed').css({
+            left: 0,
+            top: rootBottomTop + 'px'
+          });
+          curState = 'bottom';
+        }
+      }
+      function setState() {
+        var scrollTop = $scrollTarget.scrollTop();
+        if (scrollTop >= rootTop && scrollTop <= scrollBottom) {
+          fixed();
+        } else if (scrollTop < rootTop) {
+          top();
+        } else {
+          bottom();
+        }
+      }
+      function init() {
+        if(!hasInit) {
+          var interval, timeout;
+          calc(true); setState();
+          // run calc every 100 millisecond
+          interval = setInterval(function() {
+            calc();
+          }, 100);
+          timeout = setTimeout(function() {
+            clearInterval(interval);
+          }, 45000);
+          window.pageLoad.then(function() {
+            setTimeout(function() {
+              clearInterval(interval);
+              clearTimeout(timeout);
+            }, 3000);
+          });
+          $scrollTarget.on('scroll', function() {
+            disabled || setState();
+          });
+          $window.on('resize', function() {
+            disabled || (calc(true), setState());
+          });
+          hasInit = true;
+        }
+      }
+
+      setOptions(options);
+      if (!disabled) {
+        init();
+      }
+      $window.on('resize', window.throttle(function() {
+        init();
+      }, 200));
+      return {
+        setOptions: setOptions,
+        refresh: function() {
+          calc(true, { animation: false }); setState();
+        }
+      };
+    }
+    $.fn.affix = affix;
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    function toc(options) {
+      var $root = this, $window = $(window), $scrollTarget, $scroller, $tocUl = $('<ul class="toc toc--ellipsis"></ul>'), $tocLi, $headings, $activeLast, $activeCur,
+        selectors = 'h1,h2,h3', container = 'body', scrollTarget = window, scroller = 'html, body', disabled = false,
+        headingsPos, scrolling = false, hasRendered = false, hasInit = false;
+
+      function setOptions(options) {
+        var _options = options || {};
+        _options.selectors && (selectors = _options.selectors);
+        _options.container && (container = _options.container);
+        _options.scrollTarget && (scrollTarget = _options.scrollTarget);
+        _options.scroller && (scroller = _options.scroller);
+        _options.disabled !== undefined && (disabled = _options.disabled);
+        $headings = $(container).find(selectors).filter('[id]');
+        $scrollTarget = $(scrollTarget);
+        $scroller = $(scroller);
+      }
+      function calc() {
+        headingsPos = [];
+        $headings.each(function() {
+          headingsPos.push(Math.floor($(this).position().top));
+        });
+      }
+      function setState(element, disabled) {
+        var scrollTop = $scrollTarget.scrollTop(), i;
+        if (disabled || !headingsPos || headingsPos.length < 1) { return; }
+        if (element) {
+          $activeCur = element;
+        } else {
+          for (i = 0; i < headingsPos.length; i++) {
+            if (scrollTop >= headingsPos[i]) {
+              $activeCur = $tocLi.eq(i);
+            } else {
+              $activeCur || ($activeCur = $tocLi.eq(i));
+              break;
+            }
+          }
+        }
+        $activeLast && $activeLast.removeClass('active');
+        ($activeLast = $activeCur).addClass('active');
+      }
+      function render() {
+        if(!hasRendered) {
+          $root.append($tocUl);
+          $headings.each(function() {
+            var $this = $(this);
+            $tocUl.append($('<li></li>').addClass('toc-' + $this.prop('tagName').toLowerCase())
+              .append($('<a></a>').text($this.text()).attr('href', '#' + $this.prop('id'))));
+          });
+          $tocLi = $tocUl.children('li');
+          $tocUl.on('click', 'a', function(e) {
+            e.preventDefault();
+            var $this = $(this);
+            scrolling = true;
+            setState($this.parent());
+            $scroller.scrollToAnchor($this.attr('href'), 400, function() {
+              scrolling = false;
+            });
+          });
+        }
+        hasRendered = true;
+      }
+      function init() {
+        var interval, timeout;
+        if(!hasInit) {
+          render(); calc(); setState(null, scrolling);
+          // run calc every 100 millisecond
+          interval = setInterval(function() {
+            calc();
+          }, 100);
+          timeout = setTimeout(function() {
+            clearInterval(interval);
+          }, 45000);
+          window.pageLoad.then(function() {
+            setTimeout(function() {
+              clearInterval(interval);
+              clearTimeout(timeout);
+            }, 3000);
+          });
+          $scrollTarget.on('scroll', function() {
+            disabled || setState(null, scrolling);
+          });
+          $window.on('resize', window.throttle(function() {
+            if (!disabled) {
+              render(); calc(); setState(null, scrolling);
+            }
+          }, 100));
+        }
+        hasInit = true;
+      }
+
+      setOptions(options);
+      if (!disabled) {
+        init();
+      }
+      $window.on('resize', window.throttle(function() {
+        init();
+      }, 200));
+      return {
+        setOptions: setOptions
+      };
+    }
+    $.fn.toc = toc;
+  });
+})();
+/*(function () {
+
+})();*/
+</script><script>(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $pageMask = $('.js-page-mask');
+    var $pageRoot = $('.js-page-root');
+    var $sidebarShow = $('.js-sidebar-show');
+    var $sidebarHide = $('.js-sidebar-hide');
+
+    function freeze(e) {
+      if (e.target === $pageMask[0]) {
+        e.preventDefault();
+      }
+    }
+    function stopBodyScrolling(bool) {
+      if (bool === true) {
+        window.addEventListener('touchmove', freeze, { passive: false });
+      } else {
+        window.removeEventListener('touchmove', freeze, { passive: false });
+      }
+    }
+
+    $sidebarShow.on('click', function() {
+      stopBodyScrolling(true); $pageRoot.addClass('show-sidebar');
+    });
+    $sidebarHide.on('click', function() {
+      stopBodyScrolling(false); $pageRoot.removeClass('show-sidebar');
+    });
+  });
+})();
+</script><script>
+  /* toc must before affix, since affix need to konw toc' height. */(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  var TOC_SELECTOR = window.TEXT_VARIABLES.site.toc.selectors;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $window = $(window);
+    var $articleContent = $('.js-article-content');
+    var $tocRoot = $('.js-toc-root'), $col2 = $('.js-col-aside');
+    var toc;
+    var tocDisabled = false;
+    var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+    var hasToc = $articleContent.find(TOC_SELECTOR).length > 0;
+
+    function disabled() {
+      return $col2.css('display') === 'none' || !hasToc;
+    }
+
+    tocDisabled = disabled();
+
+    toc = $tocRoot.toc({
+      selectors: TOC_SELECTOR,
+      container: $articleContent,
+      scrollTarget: hasSidebar ? '.js-page-main' : null,
+      scroller: hasSidebar ? '.js-page-main' : null,
+      disabled: tocDisabled
+    });
+
+    $window.on('resize', window.throttle(function() {
+      tocDisabled = disabled();
+      toc && toc.setOptions({
+        disabled: tocDisabled
+      });
+    }, 100));
+
+  });
+})();
+(function() {
+  var SOURCES = window.TEXT_VARIABLES.sources;
+  window.Lazyload.js(SOURCES.jquery, function() {
+    var $window = $(window), $pageFooter = $('.js-page-footer');
+    var $pageAside = $('.js-page-aside');
+    var affix;
+    var tocDisabled = false;
+    var hasSidebar = $('.js-page-root').hasClass('layout--page--sidebar');
+
+    affix = $pageAside.affix({
+      offsetBottom: $pageFooter.outerHeight(),
+      scrollTarget: hasSidebar ? '.js-page-main' : null,
+      scroller: hasSidebar ? '.js-page-main' : null,
+      scroll: hasSidebar ? $('.js-page-main').children() : null,
+      disabled: tocDisabled
+    });
+
+    $window.on('resize', window.throttle(function() {
+      affix && affix.setOptions({
+        disabled: tocDisabled
+      });
+    }, 100));
+
+    window.pageAsideAffix = affix;
+  });
+})();
+</script><script>
+  window.Lazyload.js(['https://cdn.bootcss.com/jquery/3.1.1/jquery.min.js', 'https://cdn.bootcss.com/Chart.js/2.7.2/Chart.bundle.min.js'], function() {
+    var $canvas = null, $this = null, _ctx = null, _text = '';
+    $('.language-chart').each(function(){
+      $this = $(this);
+      $canvas = $('<canvas></canvas>');
+      _text = $this.text();
+      $this.text('').append($canvas);
+      _ctx = $canvas.get(0).getContext('2d');
+      (_ctx && _text) && (new Chart(_ctx, JSON.parse(_text)) && $this.attr('data-processed', true));
+    });
+  });
+</script>
+<script type="text/x-mathjax-config">
+	var _config = { tex2jax: {
+		inlineMath: [['$','$'], ['\\(','\\)']]
+	}};_config.TeX = { equationNumbers: { autoNumber: "all" } };MathJax.Hub.Config(_config);
+</script>
+<script type="text/javascript" src="https://cdn.bootcss.com/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+<script>
+  window.Lazyload.js('https://cdn.bootcss.com/mermaid/8.0.0-rc.8/mermaid.min.js', function() {
+    mermaid.initialize({
+      startOnLoad: true
+    });
+    mermaid.init(undefined, '.language-mermaid');
+  });
+</script>
+
+    </div>
+    <script>(function () {
+  var $root = document.getElementsByClassName('root')[0];
+  if (window.hasEvent('touchstart')) {
+    $root.dataset.isTouch = true;
+    document.addEventListener('touchstart', function(){}, false);
+  }
+})();
+</script>
+  </body>
+</html>
+

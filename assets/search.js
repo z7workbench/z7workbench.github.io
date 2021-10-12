@@ -1,0 +1,1 @@
+window.TEXT_SEARCH_DATA={'posts':[{'title':"Welcome to ZeroGo's Workbench! / 欢迎来到小Z的工作台！",'url':"/2020/10/22/welcome.html"},{'title':"Android notes is on! / Android学习笔记已上线！",'url':"/2020/10/26/android-notes.html"},{'title':"Linux Notes / Linux折腾笔记",'url':"/2021/06/30/linux-notes.html"},{'title':"VSCode: the Magic Code Editor / 神奇代码编辑器——VSCode",'url':"/2021/06/30/vscode.html"}]};
